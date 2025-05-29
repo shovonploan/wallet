@@ -1,0 +1,53 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+generated_plugin_registrant.dart
+
+# IDE related
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Android Studio
+.android/
+.gradle/
+local.properties
+
+# iOS/macOS
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Pods/
+macos/.symlinks/
+macos/Runner.xcworkspace/
+
+# Web
+web/.dart_tool/
+web/build/
+
+# Windows
+windows/Flutter/generated_plugin_registrant.cc
+windows/runner/GeneratedPluginRegistrant.*
+
+# Linux
+linux/flutter/
+linux/Flutter/generated_plugin_registrant.cc
+linux/runner/GeneratedPluginRegistrant.*
+
+# Other
+*.log
+*.lock
+*.tmp
+*.swp
+*.DS_Store
+*.idea/
+*.vscode/
