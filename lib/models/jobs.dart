@@ -173,6 +173,11 @@ class Job extends DBGrain {
     return super.DBInsert(toJson());
   }
 
+  @override
+  String customInsert() {
+    return '';
+  }
+
   String update(Job newGrain) {
     return super.DBUpdate(newGrain.toJson());
   }

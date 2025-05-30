@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wallet/components/DateRangeSelection.dart';
 import 'package:wallet/components/DropDownSelectMultiple.dart';
 import 'package:wallet/components/MainDrawer.dart';
 import 'package:wallet/components/TotalAmountCard.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/models/account.dart';
+import 'package:wallet/models/kind.dart';
 
 import '../constants/theme.dart';
 import 'Account/CreateAccount.dart';
@@ -92,20 +94,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              DateRangeSelection(dateRangeNode: dateRangeNode)
+              DateRangeSelection(dateRangeNode: dateRangeNode),
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          pushPopIn(
-            context,
-            const Createtransaction(),
-          );
+      floatingActionButton: BlocBuilder<AccountBloc, AccountState>(
+        builder: (context, state) {
+          return (state is AccountLoaded)
+              ? (state.allAccounts.isNotEmpty)
+                  ? FloatingActionButton(
+                      onPressed: () {
+                        pushPopIn(
+                          context,
+                          const Createtransaction(),
+                        );
+                      },
+                      backgroundColor: CustomColor.primary.shade900,
+                      child: const Icon(Icons.add),
+                    )
+                  : Container()
+              : Container();
         },
-        backgroundColor: CustomColor.primary.shade900,
-        child: const Icon(Icons.add),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:wallet/database/database.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
 import 'package:wallet/models/jobs.dart';
+import 'package:wallet/models/kind.dart';
 import 'package:window_size/window_size.dart';
 
 import 'Pages/Authenticate.dart';
@@ -58,6 +59,10 @@ void main() async {
           BlocProvider(
             create: (context) =>
                 NavigationBloc()..add(const NavigationUpdate(HomeScreen())),
+          ),
+          BlocProvider(
+            create: (context) =>
+            KindBloc(databaseHelper)..add(const LoadKinds()),
           ),
           BlocProvider(
             create: (context) =>

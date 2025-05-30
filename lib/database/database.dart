@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_keychain/flutter_keychain.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart';
@@ -14,11 +13,13 @@ import 'package:wallet/constants/common.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
 import 'package:wallet/models/jobs.dart';
+import 'package:wallet/models/kind.dart';
 
 final Map<String, DBGrain> _allTables = {
   "Authenticate": Authenticate.defaultCtor(),
   "Account": Account.defaultCtor(),
-  "Job": Job.defaultCtor()
+  "Job": Job.defaultCtor(),
+  "Kind": Kind.defaultCtor()
 };
 
 class DatabaseHelper {
@@ -398,7 +399,7 @@ class DatabaseHelper {
   }
 
   Future<List<String>> getPagedGrain(String table,
-      [int pageSize = 100, int offset = 0]) async {
+      [int pageSize = 500, int offset = 0]) async {
     for (var entry in _allTables.entries) {
       if (entry.key == table) {
         final db = await database;
@@ -520,8 +521,10 @@ abstract class DBGrain {
         'CREATE TABLE IF NOT EXISTS ${tableName}_history ($primaryKey TEXT, object TEXT, createdOn DATETIME);\n';
     sql +=
         'CREATE TABLE IF NOT EXISTS ${tableName}_blob_primary ($primaryKey TEXT, blobId TEXT, key TEXT, createdOn DATETIME);\n';
-    return sql;
+    return sql + customInsert();
   }
+
+  String customInsert();
 
   String _getEncryptedObject(String jsonData) {
     return DatabaseHelper()._getEncryptedObject(jsonData);

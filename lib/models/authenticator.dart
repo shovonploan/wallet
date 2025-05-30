@@ -110,6 +110,11 @@ class Authenticate extends DBGrain {
     return super.DBInsert(toJson());
   }
 
+  @override
+  String customInsert() {
+    return '';
+  }
+
   String update(Authenticate newGrain) {
     return super.DBUpdate(newGrain.toJson());
   }
@@ -256,6 +261,7 @@ class AuthenticateBloc extends Bloc<AuthenticateEvent, AuthenticateState> {
         emit(const CreatingAuthenticate(''));
       }
     } catch (e) {
+      print("Error $e");
       emit(const AuthenticateError('Failed to load authentication data.'));
     }
   }
