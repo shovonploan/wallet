@@ -10,6 +10,59 @@ import 'package:wallet/database/database.dart';
 
 import '../constants/icons.dart';
 
+abstract class KindNature {
+  const KindNature();
+  Map<String, dynamic> toJson();
+  factory KindNature.fromMap(Map<String, dynamic> map) {
+    switch (map['state']) {
+      case 'Must':
+        return const Must();
+      case 'Need':
+        return const Need();
+      case 'Want':
+        return const Want();
+      default:
+        throw Exception('Unknown kind nature: ${map['state']}');
+    }
+  }
+}
+
+class Must extends KindNature {
+  const Must() : super();
+  @override
+  Map<String, dynamic> toJson() => {
+        'state': 'Must',
+      };
+  @override
+  String toString() {
+    return 'Must';
+  }
+}
+
+class Need extends KindNature {
+  const Need() : super();
+  @override
+  Map<String, dynamic> toJson() => {
+        'state': 'Need',
+      };
+  @override
+  String toString() {
+    return 'Need';
+  }
+}
+
+class Want extends KindNature {
+  const Want() : super();
+  @override
+  Map<String, dynamic> toJson() => {
+        'state': 'Want',
+      };
+  @override
+  String toString() {
+    return 'Want';
+  }
+}
+
 String _tableName = "Kind";
 
 @immutable
@@ -17,15 +70,17 @@ class Kind extends DBGrain {
   @override
   final String id;
   final String name;
+  final KindNature nature;
   final String parentId;
   final int level;
   final IconData icon;
   final Color color;
 
-  Kind.Ctor(String name, String parentId, int level, IconData icon, Color color)
+  Kind.Ctor(String name,KindNature nature ,String parentId, int level, IconData icon, Color color)
       : this(
           id: generateNewUuid(),
           name: name,
+          nature: nature,
           parentId: parentId,
           level: level,
           icon: icon,
@@ -35,6 +90,7 @@ class Kind extends DBGrain {
       : this(
           id: '',
           name: '',
+          nature: const Want(),
           parentId: '',
           level: 0,
           icon: FontAwesomeIcons.circleQuestion,
@@ -44,6 +100,7 @@ class Kind extends DBGrain {
   Kind({
     required this.id,
     required this.name,
+    required this.nature,
     required this.parentId,
     required this.level,
     required this.icon,
@@ -53,6 +110,7 @@ class Kind extends DBGrain {
   Kind copyWith({
     String? id,
     String? name,
+    KindNature? nature,
     String? parentId,
     int? level,
     IconData? icon,
@@ -61,6 +119,7 @@ class Kind extends DBGrain {
     return Kind(
       id: id ?? this.id,
       name: name ?? this.name,
+      nature: nature ?? this.nature,
       parentId: parentId ?? this.parentId,
       level: level ?? this.level,
       icon: icon ?? this.icon,
@@ -72,6 +131,7 @@ class Kind extends DBGrain {
     return <String, dynamic>{
       'id': id,
       'name': name,
+      'nature': nature.toJson(),
       'parentId': parentId,
       'level': level,
       'icon': iconMap.entries.firstWhere((e) => e.value == icon).key,
@@ -87,6 +147,7 @@ class Kind extends DBGrain {
       return Kind(
         id: map['id'] as String,
         name: map['name'] as String,
+        nature: KindNature.fromMap(map['nature']),
         parentId: map['parentId'] as String,
         level: map['level'] as int,
         icon: iconMap[map['icon']] ?? FontAwesomeIcons.circleQuestion,
@@ -103,13 +164,14 @@ class Kind extends DBGrain {
       Kind._fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() => 'Kind(id: $id, name: $name, parentId: $parentId)';
+  String toString() => 'Kind(id: $id, name: $name, nature: $nature, parentId: $parentId)';
 
   @override
   bool operator ==(covariant Kind other) {
     if (identical(this, other)) return true;
     return other.id == id &&
         other.name == name &&
+        other.nature == nature &&
         other.parentId == parentId &&
         other.level == level;
   }
@@ -120,7 +182,7 @@ class Kind extends DBGrain {
   @override
   final String tableName = _tableName;
   @override
-  final Map<String, String> indexs = {};
+  Map<String, String> get indexs => {};
 
   @override
   String insert() {
@@ -132,6 +194,7 @@ class Kind extends DBGrain {
     Kind food = Kind(
         id: generateNewUuid(),
         name: 'Food & Beverage',
+        nature: const Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.utensils,
@@ -139,6 +202,7 @@ class Kind extends DBGrain {
     Kind food1 = Kind(
         id: generateNewUuid(),
         name: 'Bar, cafe',
+        nature: Want(),
         parentId: food.id,
         level: 1,
         icon: FontAwesomeIcons.whiskeyGlass,
@@ -146,6 +210,7 @@ class Kind extends DBGrain {
     Kind food2 = Kind(
         id: generateNewUuid(),
         name: 'Groceries',
+        nature: Need(),
         parentId: food.id,
         level: 1,
         icon: FontAwesomeIcons.basketShopping,
@@ -153,6 +218,7 @@ class Kind extends DBGrain {
     Kind food3 = Kind(
         id: generateNewUuid(),
         name: 'Restaurant, fast-food',
+        nature: Want(),
         parentId: food.id,
         level: 1,
         icon: FontAwesomeIcons.burger,
@@ -161,6 +227,7 @@ class Kind extends DBGrain {
     Kind shopping = Kind(
         id: generateNewUuid(),
         name: 'Shopping',
+        nature: Want(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.tag,
@@ -168,6 +235,7 @@ class Kind extends DBGrain {
     Kind shopping1 = Kind(
         id: generateNewUuid(),
         name: 'Clothes & Footwear',
+        nature: Need(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.shirt,
@@ -175,6 +243,7 @@ class Kind extends DBGrain {
     Kind shopping2 = Kind(
         id: generateNewUuid(),
         name: 'Drug-store, chemist',
+        nature: Need(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.pills,
@@ -182,6 +251,7 @@ class Kind extends DBGrain {
     Kind shopping3 = Kind(
         id: generateNewUuid(),
         name: 'Electronics, accessories',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.laptop,
@@ -189,6 +259,7 @@ class Kind extends DBGrain {
     Kind shopping4 = Kind(
         id: generateNewUuid(),
         name: 'Gifts, joy',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.gifts,
@@ -196,6 +267,7 @@ class Kind extends DBGrain {
     Kind shopping5 = Kind(
         id: generateNewUuid(),
         name: 'Health and beauty',
+        nature: Need(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.staffSnake,
@@ -203,6 +275,7 @@ class Kind extends DBGrain {
     Kind shopping6 = Kind(
         id: generateNewUuid(),
         name: 'Home, garden',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.houseChimney,
@@ -210,6 +283,7 @@ class Kind extends DBGrain {
     Kind shopping7 = Kind(
         id: generateNewUuid(),
         name: 'Jewels, accessories',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.gem,
@@ -217,6 +291,7 @@ class Kind extends DBGrain {
     Kind shopping8 = Kind(
         id: generateNewUuid(),
         name: 'Kids',
+        nature: Need(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.children,
@@ -224,6 +299,7 @@ class Kind extends DBGrain {
     Kind shopping9 = Kind(
         id: generateNewUuid(),
         name: 'Leisure time',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.faceTired,
@@ -231,6 +307,7 @@ class Kind extends DBGrain {
     Kind shopping10 = Kind(
         id: generateNewUuid(),
         name: 'Pets, animals',
+        nature: Want(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.paw,
@@ -238,6 +315,7 @@ class Kind extends DBGrain {
     Kind shopping11 = Kind(
         id: generateNewUuid(),
         name: 'Stationery, tools',
+        nature: Need(),
         parentId: shopping.id,
         level: 1,
         icon: FontAwesomeIcons.penRuler,
@@ -246,6 +324,7 @@ class Kind extends DBGrain {
     Kind housing = Kind(
         id: generateNewUuid(),
         name: 'Housing',
+        nature: Must(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.house,
@@ -253,6 +332,7 @@ class Kind extends DBGrain {
     Kind housing1 = Kind(
         id: generateNewUuid(),
         name: 'Energy, utilities',
+        nature: Must(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.lightbulb,
@@ -260,6 +340,7 @@ class Kind extends DBGrain {
     Kind housing2 = Kind(
         id: generateNewUuid(),
         name: 'Maintenance, repairs',
+        nature: Need(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.gavel,
@@ -267,6 +348,7 @@ class Kind extends DBGrain {
     Kind housing3 = Kind(
         id: generateNewUuid(),
         name: 'Mortgage',
+        nature: Must(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.scaleBalanced,
@@ -274,6 +356,7 @@ class Kind extends DBGrain {
     Kind housing4 = Kind(
         id: generateNewUuid(),
         name: 'Property insurance',
+        nature: Need(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.houseChimneyCrack,
@@ -281,6 +364,7 @@ class Kind extends DBGrain {
     Kind housing5 = Kind(
         id: generateNewUuid(),
         name: 'Rent',
+        nature: Must(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.key,
@@ -288,6 +372,7 @@ class Kind extends DBGrain {
     Kind housing6 = Kind(
         id: generateNewUuid(),
         name: 'Services',
+        nature: Must(),
         parentId: housing.id,
         level: 1,
         icon: FontAwesomeIcons.houseSignal,
@@ -296,6 +381,7 @@ class Kind extends DBGrain {
     Kind transportation = Kind(
         id: generateNewUuid(),
         name: 'Transportation',
+        nature: Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.bus,
@@ -303,6 +389,7 @@ class Kind extends DBGrain {
     Kind transportation1 = Kind(
         id: generateNewUuid(),
         name: 'Business trips',
+        nature: Need(),
         parentId: transportation.id,
         level: 1,
         icon: FontAwesomeIcons.suitcaseRolling,
@@ -310,6 +397,7 @@ class Kind extends DBGrain {
     Kind transportation2 = Kind(
         id: generateNewUuid(),
         name: 'Long distance',
+        nature: Want(),
         parentId: transportation.id,
         level: 1,
         icon: FontAwesomeIcons.truckPlane,
@@ -317,6 +405,7 @@ class Kind extends DBGrain {
     Kind transportation3 = Kind(
         id: generateNewUuid(),
         name: 'Public transport',
+        nature: Need(),
         parentId: transportation.id,
         level: 1,
         icon: FontAwesomeIcons.trainSubway,
@@ -324,6 +413,7 @@ class Kind extends DBGrain {
     Kind transportation4 = Kind(
         id: generateNewUuid(),
         name: 'Taxi',
+        nature: Want(),
         parentId: transportation.id,
         level: 1,
         icon: FontAwesomeIcons.taxi,
@@ -332,6 +422,7 @@ class Kind extends DBGrain {
     Kind vehicle = Kind(
         id: generateNewUuid(),
         name: 'Vehicle',
+        nature: Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.car,
@@ -339,6 +430,7 @@ class Kind extends DBGrain {
     Kind vehicle1 = Kind(
         id: generateNewUuid(),
         name: 'Fuel',
+        nature: Need(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.gasPump,
@@ -346,6 +438,7 @@ class Kind extends DBGrain {
     Kind vehicle2 = Kind(
         id: generateNewUuid(),
         name: 'Leasing',
+        nature: Must(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.coins,
@@ -353,6 +446,7 @@ class Kind extends DBGrain {
     Kind vehicle3 = Kind(
         id: generateNewUuid(),
         name: 'Parking',
+        nature: Want(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.squareParking,
@@ -360,6 +454,7 @@ class Kind extends DBGrain {
     Kind vehicle4 = Kind(
         id: generateNewUuid(),
         name: 'Rentals',
+        nature: Want(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.file,
@@ -367,6 +462,7 @@ class Kind extends DBGrain {
     Kind vehicle5 = Kind(
         id: generateNewUuid(),
         name: 'Vehicle insurance',
+        nature: Need(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.addressCard,
@@ -374,6 +470,7 @@ class Kind extends DBGrain {
     Kind vehicle6 = Kind(
         id: generateNewUuid(),
         name: 'Vehicle maintenance',
+        nature: Must(),
         parentId: vehicle.id,
         level: 1,
         icon: FontAwesomeIcons.screwdriverWrench,
@@ -382,6 +479,7 @@ class Kind extends DBGrain {
     Kind life = Kind(
         id: generateNewUuid(),
         name: 'Life & Entertainment',
+        nature: Want(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.heartCirclePlus,
@@ -389,6 +487,7 @@ class Kind extends DBGrain {
     Kind life1 = Kind(
         id: generateNewUuid(),
         name: 'Active sport, fitness',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.futbol,
@@ -396,6 +495,7 @@ class Kind extends DBGrain {
     Kind life2 = Kind(
         id: generateNewUuid(),
         name: 'Alcohol, tobacco',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.wineBottle,
@@ -403,6 +503,7 @@ class Kind extends DBGrain {
     Kind life3 = Kind(
         id: generateNewUuid(),
         name: 'Books, audio, subscriptions',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.book,
@@ -410,6 +511,7 @@ class Kind extends DBGrain {
     Kind life4 = Kind(
         id: generateNewUuid(),
         name: 'Charity, gifts',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.gifts,
@@ -417,6 +519,7 @@ class Kind extends DBGrain {
     Kind life5 = Kind(
         id: generateNewUuid(),
         name: 'Culture, sport events',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.handsClapping,
@@ -424,6 +527,7 @@ class Kind extends DBGrain {
     Kind life6 = Kind(
         id: generateNewUuid(),
         name: 'Education, development',
+        nature: Need(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.userGraduate,
@@ -431,6 +535,7 @@ class Kind extends DBGrain {
     Kind life7 = Kind(
         id: generateNewUuid(),
         name: 'Health care, doctor',
+        nature: Need(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.userDoctor,
@@ -438,6 +543,7 @@ class Kind extends DBGrain {
     Kind life8 = Kind(
         id: generateNewUuid(),
         name: 'Hobbies',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.heart,
@@ -445,6 +551,7 @@ class Kind extends DBGrain {
     Kind life9 = Kind(
         id: generateNewUuid(),
         name: 'Holiday, trips, hotels',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.umbrellaBeach,
@@ -452,6 +559,7 @@ class Kind extends DBGrain {
     Kind life10 = Kind(
         id: generateNewUuid(),
         name: 'Life events',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.cakeCandles,
@@ -459,6 +567,7 @@ class Kind extends DBGrain {
     Kind life11 = Kind(
         id: generateNewUuid(),
         name: 'Lottery, gambling',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.dice,
@@ -466,6 +575,7 @@ class Kind extends DBGrain {
     Kind life12 = Kind(
         id: generateNewUuid(),
         name: 'TV, Streaming',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.tv,
@@ -473,6 +583,7 @@ class Kind extends DBGrain {
     Kind life13 = Kind(
         id: generateNewUuid(),
         name: 'Wellness, beauty',
+        nature: Want(),
         parentId: life.id,
         level: 1,
         icon: FontAwesomeIcons.fan,
@@ -481,6 +592,7 @@ class Kind extends DBGrain {
     Kind communication = Kind(
         id: generateNewUuid(),
         name: 'Communication, PC',
+        nature: Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.laptop,
@@ -488,6 +600,7 @@ class Kind extends DBGrain {
     Kind communication1 = Kind(
         id: generateNewUuid(),
         name: 'Internet',
+        nature: Need(),
         parentId: communication.id,
         level: 1,
         icon: FontAwesomeIcons.wifi,
@@ -495,6 +608,7 @@ class Kind extends DBGrain {
     Kind communication2 = Kind(
         id: generateNewUuid(),
         name: 'Postal services',
+        nature: Need(),
         parentId: communication.id,
         level: 1,
         icon: FontAwesomeIcons.envelopesBulk,
@@ -502,6 +616,7 @@ class Kind extends DBGrain {
     Kind communication3 = Kind(
         id: generateNewUuid(),
         name: 'Software, apps, games',
+        nature: Want(),
         parentId: communication.id,
         level: 1,
         icon: FontAwesomeIcons.hardDrive,
@@ -509,6 +624,7 @@ class Kind extends DBGrain {
     Kind communication4 = Kind(
         id: generateNewUuid(),
         name: 'Telephony, mobile phone',
+        nature: Need(),
         parentId: communication.id,
         level: 1,
         icon: FontAwesomeIcons.phone,
@@ -517,6 +633,7 @@ class Kind extends DBGrain {
     Kind financial = Kind(
         id: generateNewUuid(),
         name: 'Financial expenses',
+        nature: Must(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.magnifyingGlassDollar,
@@ -524,6 +641,7 @@ class Kind extends DBGrain {
     Kind financial1 = Kind(
         id: generateNewUuid(),
         name: 'Advisory',
+        nature: Want(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.commentMedical,
@@ -531,6 +649,7 @@ class Kind extends DBGrain {
     Kind financial2 = Kind(
         id: generateNewUuid(),
         name: 'Charges, Fees',
+        nature: Must(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.fileInvoiceDollar,
@@ -538,6 +657,7 @@ class Kind extends DBGrain {
     Kind financial3 = Kind(
         id: generateNewUuid(),
         name: 'Child Support',
+        nature: Must(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.baby,
@@ -545,6 +665,7 @@ class Kind extends DBGrain {
     Kind financial4 = Kind(
         id: generateNewUuid(),
         name: 'Fines',
+        nature: Must(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.receipt,
@@ -552,6 +673,7 @@ class Kind extends DBGrain {
     Kind financial5 = Kind(
         id: generateNewUuid(),
         name: 'Insurances',
+        nature: Need(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.exclamation,
@@ -559,6 +681,7 @@ class Kind extends DBGrain {
     Kind financial6 = Kind(
         id: generateNewUuid(),
         name: 'Loans, interests',
+        nature: Must(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.landmark,
@@ -566,6 +689,7 @@ class Kind extends DBGrain {
     Kind financial7 = Kind(
         id: generateNewUuid(),
         name: 'Taxes',
+        nature: Must(),
         parentId: financial.id,
         level: 1,
         icon: FontAwesomeIcons.moneyCheckDollar,
@@ -574,6 +698,8 @@ class Kind extends DBGrain {
     Kind investments = Kind(
         id: generateNewUuid(),
         name: 'Investments',
+
+        nature: Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.coins,
@@ -581,6 +707,7 @@ class Kind extends DBGrain {
     Kind investments1 = Kind(
         id: generateNewUuid(),
         name: 'Collections',
+        nature: Want(),
         parentId: investments.id,
         level: 1,
         icon: FontAwesomeIcons.arrowsToCircle,
@@ -588,6 +715,8 @@ class Kind extends DBGrain {
     Kind investments2 = Kind(
         id: generateNewUuid(),
         name: 'Financial investments',
+
+        nature: Need(),
         parentId: investments.id,
         level: 1,
         icon: FontAwesomeIcons.handHoldingDollar,
@@ -595,6 +724,7 @@ class Kind extends DBGrain {
     Kind investments3 = Kind(
         id: generateNewUuid(),
         name: 'Realty',
+        nature: Want(),
         parentId: investments.id,
         level: 1,
         icon: FontAwesomeIcons.buildingWheat,
@@ -602,6 +732,7 @@ class Kind extends DBGrain {
     Kind investments4 = Kind(
         id: generateNewUuid(),
         name: 'Savings',
+        nature: Need(),
         parentId: investments.id,
         level: 1,
         icon: FontAwesomeIcons.piggyBank,
@@ -609,6 +740,7 @@ class Kind extends DBGrain {
     Kind investments5 = Kind(
         id: generateNewUuid(),
         name: 'Vehicles, chattels',
+        nature: Want(),
         parentId: investments.id,
         level: 1,
         icon: FontAwesomeIcons.carSide,
@@ -617,6 +749,7 @@ class Kind extends DBGrain {
     Kind income = Kind(
         id: generateNewUuid(),
         name: 'Income',
+        nature: Need(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.moneyBillWave,
@@ -624,6 +757,7 @@ class Kind extends DBGrain {
     Kind income1 = Kind(
         id: generateNewUuid(),
         name: 'Checks, coupons',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.moneyCheck,
@@ -631,6 +765,7 @@ class Kind extends DBGrain {
     Kind income2 = Kind(
         id: generateNewUuid(),
         name: 'Child Support',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.info,
@@ -638,6 +773,7 @@ class Kind extends DBGrain {
     Kind income3 = Kind(
         id: generateNewUuid(),
         name: 'Dues & grants',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.check,
@@ -645,6 +781,7 @@ class Kind extends DBGrain {
     Kind income4 = Kind(
         id: generateNewUuid(),
         name: 'Gifts',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.gift,
@@ -652,6 +789,7 @@ class Kind extends DBGrain {
     Kind income5 = Kind(
         id: generateNewUuid(),
         name: 'Interests, dividends',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.landmarkFlag,
@@ -659,6 +797,7 @@ class Kind extends DBGrain {
     Kind income6 = Kind(
         id: generateNewUuid(),
         name: 'Lending, renting',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.bookBookmark,
@@ -666,6 +805,7 @@ class Kind extends DBGrain {
     Kind income7 = Kind(
         id: generateNewUuid(),
         name: 'Lottery, gambling',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.diceThree,
@@ -673,6 +813,7 @@ class Kind extends DBGrain {
     Kind income8 = Kind(
         id: generateNewUuid(),
         name: 'Refunds (tax, purchase)',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.rotateLeft,
@@ -680,6 +821,7 @@ class Kind extends DBGrain {
     Kind income9 = Kind(
         id: generateNewUuid(),
         name: 'Rental income',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.filterCircleDollar,
@@ -687,6 +829,7 @@ class Kind extends DBGrain {
     Kind income10 = Kind(
         id: generateNewUuid(),
         name: 'Sale',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.sackDollar,
@@ -694,6 +837,7 @@ class Kind extends DBGrain {
     Kind income11 = Kind(
         id: generateNewUuid(),
         name: 'Wage, invoices',
+        nature: Want(),
         parentId: income.id,
         level: 1,
         icon: FontAwesomeIcons.dollarSign,
@@ -702,6 +846,7 @@ class Kind extends DBGrain {
     Kind other = Kind(
         id: generateNewUuid(),
         name: 'Other',
+        nature: Want(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.circleQuestion,
@@ -709,6 +854,7 @@ class Kind extends DBGrain {
     Kind missing = Kind(
         id: generateNewUuid(),
         name: 'Missing',
+        nature: Want(),
         parentId: '',
         level: 0,
         icon: FontAwesomeIcons.circleQuestion,
