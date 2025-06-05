@@ -1,13 +1,13 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:wallet/components/DateRangeSelection.dart';
 import 'package:wallet/components/DropDownSelectMultiple.dart';
 import 'package:wallet/components/MainDrawer.dart';
 import 'package:wallet/components/TotalAmountCard.dart';
+import 'package:wallet/components/filepicker.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/models/account.dart';
-import 'package:wallet/models/kind.dart';
 
 import '../constants/theme.dart';
 import 'Account/CreateAccount.dart';
@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    super.initState();
     dateRangeNode.addListener(() {
       setState(() {});
     });
@@ -96,6 +97,18 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               DateRangeSelection(dateRangeNode: dateRangeNode),
               const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  Uint8List? imageBytes = (await pickImageSafely()) as Uint8List?;
+                  if (imageBytes != null) {
+                    // setState(() {
+                    //   _selectedImageBytes = imageBytes;
+                    // });
+                  }
+                },
+                child: Text('Pick Image'),
+              ),
+
             ],
           ),
         ),

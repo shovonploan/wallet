@@ -13,7 +13,7 @@ String _tableName = "Account";
 abstract class AccountType {
   const AccountType();
   Map<String, dynamic> toJson();
-  factory AccountType.fromMap(Map<String, dynamic> map) {
+  factory AccountType.fromMap(Map<String, dynamic> map)   {
     switch (map['type']) {
       case 'Cash':
         return const Cash();
@@ -198,7 +198,7 @@ class Account extends DBGrain {
   @override
   final String tableName = _tableName;
   @override
-  final Map<String, String> indexs = {};
+  Map<String, String> get indexs => {};
 
   @override
   String insert() {

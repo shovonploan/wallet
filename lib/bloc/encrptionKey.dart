@@ -1,12 +1,8 @@
 library encryptionKey;
 
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../constants/common.dart';
 import '../database/database.dart';
 
 //---------------State-----------------------
@@ -96,7 +92,7 @@ class EncryptionKeyBloc extends Bloc<EncryptionKeyEvent, EncryptionKeyState> {
         await _dbHelper.setKey();
       }
       emit(EncryptionKeyLoaded());
-    } catch (e, st) {
+    } catch (e, _) {
       emit(const EncryptionKeyError("Could not load key"));
     }
   }

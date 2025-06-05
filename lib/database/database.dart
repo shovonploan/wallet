@@ -14,12 +14,14 @@ import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
 import 'package:wallet/models/jobs.dart';
 import 'package:wallet/models/kind.dart';
+import 'package:wallet/models/product.dart';
 
 final Map<String, DBGrain> _allTables = {
   "Authenticate": Authenticate.defaultCtor(),
   "Account": Account.defaultCtor(),
   "Job": Job.defaultCtor(),
-  "Kind": Kind.defaultCtor()
+  "Kind": Kind.defaultCtor(),
+  "Product": Product.defaultCtor(),
 };
 
 class DatabaseHelper {
@@ -54,7 +56,7 @@ class DatabaseHelper {
 
   bool get hasEncryptionKey {
     try {
-      final key = _encryptionKey;
+      final _ = _encryptionKey;
       return true;
     } on Exception {
       return false;
@@ -555,8 +557,7 @@ abstract class DBGrain {
         'VALUES (\'$id\', \'$key\', \'$value\');\n';
   }
 
-  String insertImageAsBlob(Uint8List data, String key) {
-    String blobId = generateNewUuid();
+  String insertImageAsBlob(String blobId, Uint8List data, String key) {
     String hexData =
         data.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 

@@ -166,7 +166,7 @@ class Job extends DBGrain {
   @override
   final String tableName = _tableName;
   @override
-  final Map<String, String> indexs = {};
+  Map<String, String> get indexs => {};
 
   @override
   String insert() {

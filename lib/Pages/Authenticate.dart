@@ -152,7 +152,6 @@ class _AuthenticationScreenState extends State<AuthenticationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final Size screenSize = MediaQuery.of(context).size;
     return SafeArea(
       child: BlocConsumer<AuthenticateBloc, AuthenticateState>(
         listener: (context, state) {
