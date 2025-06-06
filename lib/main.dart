@@ -9,6 +9,8 @@ import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
 import 'package:wallet/models/jobs.dart';
 import 'package:wallet/models/kind.dart';
+import 'package:wallet/models/product.dart';
+import 'package:wallet/models/record.dart';
 import 'package:window_size/window_size.dart';
 
 import 'Pages/Authenticate.dart';
@@ -53,8 +55,8 @@ void main() async {
                 AuthenticateBloc(databaseHelper)..add(LoadAuthenticate()),
           ),
           BlocProvider(
-            create: (context) =>
-                DataRangeBloc()..add(const SelectedDataRange(Duration(days: 7))),
+            create: (context) => DataRangeBloc()
+              ..add(const SelectedDataRange(Duration(days: 7))),
           ),
           BlocProvider(
             create: (context) =>
@@ -62,11 +64,27 @@ void main() async {
           ),
           BlocProvider(
             create: (context) =>
-            KindBloc(databaseHelper)..add(const LoadKinds()),
+                KindBloc(databaseHelper)..add(const LoadKinds()),
           ),
           BlocProvider(
             create: (context) =>
                 AccountBloc(databaseHelper)..add(LoadAccounts()),
+          ),
+          BlocProvider(
+            create: (context) {
+              final now = DateTime.now();
+              final target = now
+                  .subtract(context.read<DataRangeBloc>().state.range.duration);
+              final value =
+                  DateTime(target.year, target.month, target.day).toString();
+              return RecordBloc(databaseHelper, context.read<ProductBloc>(), context.read<AccountBloc>(),)
+                ..add(LoadRecords(Date(value)));
+            },
+          ),
+          BlocProvider(
+            create: (context) =>
+                ProductBloc(databaseHelper, context.read<RecordBloc>(),)
+                  ..add(LoadProductsList()),
           ),
         ],
         child: MaterialApp(

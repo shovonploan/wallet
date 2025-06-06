@@ -1,4 +1,4 @@
-library account;
+library;
 
 import 'dart:async';
 import 'dart:convert';
@@ -13,7 +13,7 @@ String _tableName = "Account";
 abstract class AccountType {
   const AccountType();
   Map<String, dynamic> toJson();
-  factory AccountType.fromMap(Map<String, dynamic> map)   {
+  factory AccountType.fromMap(Map<String, dynamic> map) {
     switch (map['type']) {
       case 'Cash':
         return const Cash();
@@ -38,6 +38,8 @@ class Cash extends AccountType {
   Map<String, dynamic> toJson() => {
         'type': 'Cash',
       };
+  @override
+  String toString() => 'Cash';
 }
 
 class Checking extends AccountType {
@@ -46,6 +48,8 @@ class Checking extends AccountType {
   Map<String, dynamic> toJson() => {
         'type': 'Checking',
       };
+  @override
+  String toString() => 'Checking';
 }
 
 class CreditCard extends AccountType {
@@ -59,6 +63,8 @@ class CreditCard extends AccountType {
         'creditLimit': creditLimit,
         'usageLimit': usageLimit,
       };
+  @override
+  String toString() => 'CreditCard';
 }
 
 class Savings extends AccountType {
@@ -291,8 +297,15 @@ class UpdateAccount extends AccountEvent {
   const UpdateAccount(this.account, this.newName);
 
   @override
-  List<Object?> get props =>
-      [account, newName];
+  List<Object?> get props => [account, newName];
+}
+
+class UpdateAccountAmount extends AccountEvent {
+  final Account account;
+  final double newAmount;
+  const UpdateAccountAmount(this.account, this.newAmount);
+  @override
+  List<Object?> get props => [account, newAmount];
 }
 
 class DeleteAccount extends AccountEvent {
@@ -313,6 +326,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     on<SelectedAccounts>(_onSelectedAccounts);
     on<AddAccount>(_onAddAccount);
     on<UpdateAccount>(_onUpdateAccount);
+    on<UpdateAccountAmount>(_onUpdateAccountAmount);
     on<DeleteAccount>(_onDeleteAccount);
   }
 
@@ -375,6 +389,22 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       await _dbHelper
           .rawExecute(event.account.update(event.account.copyWith(
         name: event.newName,
+        updatedAt: DateTime.now().toString(),
+      )))
+          .then((_) {
+        add(LoadAccounts());
+      });
+    } catch (e) {
+      add(LoadAccounts());
+    }
+  }
+
+  Future<void> _onUpdateAccountAmount(
+      UpdateAccountAmount event, Emitter<AccountState> emit) async {
+    try {
+      await _dbHelper
+          .rawExecute(event.account.update(event.account.copyWith(
+        amount: event.newAmount,
         updatedAt: DateTime.now().toString(),
       )))
           .then((_) {

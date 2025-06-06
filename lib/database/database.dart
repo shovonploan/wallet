@@ -15,6 +15,7 @@ import 'package:wallet/models/authenticator.dart';
 import 'package:wallet/models/jobs.dart';
 import 'package:wallet/models/kind.dart';
 import 'package:wallet/models/product.dart';
+import 'package:wallet/models/record.dart';
 
 final Map<String, DBGrain> _allTables = {
   "Authenticate": Authenticate.defaultCtor(),
@@ -22,6 +23,7 @@ final Map<String, DBGrain> _allTables = {
   "Job": Job.defaultCtor(),
   "Kind": Kind.defaultCtor(),
   "Product": Product.defaultCtor(),
+  "Record": Record.defaultCtor(),
 };
 
 class DatabaseHelper {
@@ -227,6 +229,11 @@ class DatabaseHelper {
   Future<void> rawExecute(String sql) async {
     final db = await database;
     await db.execute(sql);
+  }
+
+  Future<List<Map<String, Object?>>> rawQuery(String sql) async {
+    final db = await database;
+    return await db.rawQuery(sql);
   }
 
   Future<void> rawDelete(String tableName, String id) async {

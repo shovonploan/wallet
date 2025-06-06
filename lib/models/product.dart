@@ -7,6 +7,8 @@ import 'package:wallet/constants/common.dart';
 import 'package:wallet/database/database.dart';
 import 'dart:typed_data';
 
+import 'package:wallet/models/record.dart';
+
 abstract class ProductCondition {
   const ProductCondition();
   Map<String, dynamic> toJson();
@@ -87,19 +89,19 @@ class Product extends DBGrain {
   final String id;
   final String name;
   final ProductCondition state;
-  final String transactionId;
+  final String recordId;
   final double amount;
   final String imageId;
   final String createdAt;
   final String updatedAt;
 
-  Product.Ctor(String name, ProductCondition state, String transactionId,
+  Product.Ctor(String name, ProductCondition state, String recordId,
       double amount, String imageId, String createdAt, String updatedAt)
       : this(
             id: generateNewUuid(),
             name: name,
             state: state,
-            transactionId: transactionId,
+            recordId: recordId,
             amount: amount,
             imageId: imageId,
             createdAt: createdAt,
@@ -109,7 +111,7 @@ class Product extends DBGrain {
             id: '',
             name: '',
             state: const Healthy(),
-            transactionId: '',
+            recordId: '',
             amount: 0.0,
             imageId: '',
             createdAt: '',
@@ -118,7 +120,7 @@ class Product extends DBGrain {
     required this.id,
     required this.name,
     required this.state,
-    required this.transactionId,
+    required this.recordId,
     required this.amount,
     required this.imageId,
     required this.createdAt,
@@ -129,7 +131,7 @@ class Product extends DBGrain {
     String? id,
     String? name,
     ProductCondition? state,
-    String? transactionId,
+    String? recordId,
     double? amount,
     String? imageId,
     String? createdAt,
@@ -139,7 +141,7 @@ class Product extends DBGrain {
       id: id ?? this.id,
       name: name ?? this.name,
       state: state ?? this.state,
-      transactionId: transactionId ?? this.transactionId,
+      recordId: recordId ?? this.recordId,
       amount: amount ?? this.amount,
       imageId: imageId ?? this.imageId,
       createdAt: createdAt ?? this.createdAt,
@@ -152,7 +154,7 @@ class Product extends DBGrain {
       'id': id,
       'name': name,
       'state': state.toJson(),
-      'transactionId': transactionId,
+      'recordId': recordId,
       'amount': amount,
       'imageId': imageId,
       'createdAt': createdAt,
@@ -168,7 +170,7 @@ class Product extends DBGrain {
         id: map['id'] as String,
         name: map['name'] as String,
         state: ProductCondition.fromMap(map['state']),
-        transactionId: map['transactionId'] as String,
+        recordId: map['recordId'] as String,
         amount: map['amount'] as double,
         imageId: map['imageId'] as String,
         createdAt: map['createdAt'] as String,
@@ -186,7 +188,7 @@ class Product extends DBGrain {
 
   @override
   String toString() =>
-      'Product(id: $id, name: $name, state: $state, transactionId: $transactionId, amount: $amount, imageId: $imageId, createdAt: $createdAt, updatedAt: $updatedAt)';
+      'Product(id: $id, name: $name, state: $state, recordId: $recordId, amount: $amount, imageId: $imageId, createdAt: $createdAt, updatedAt: $updatedAt)';
 
   @override
   bool operator ==(covariant Object other) {
@@ -195,7 +197,7 @@ class Product extends DBGrain {
         other.id == id &&
         other.name == name &&
         other.state == state &&
-        other.transactionId == transactionId &&
+        other.recordId == recordId &&
         other.amount == amount &&
         other.imageId == imageId &&
         other.createdAt == createdAt &&
@@ -207,7 +209,7 @@ class Product extends DBGrain {
       id.hashCode ^
       name.hashCode ^
       state.hashCode ^
-      transactionId.hashCode ^
+      recordId.hashCode ^
       amount.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
@@ -219,7 +221,7 @@ class Product extends DBGrain {
   Map<String, String> get indexs => {
         'name': name,
         'state': state.toString(),
-        'transactionId': transactionId,
+        'recordId': recordId,
       };
 
   @override
@@ -258,9 +260,9 @@ class ProductListLoaded extends ProductState {
   const ProductListLoaded(this.availableProducts, this.unavailableProducts);
 }
 
-class ProductTransactionLoaded extends ProductState {
+class ProductRecordLoaded extends ProductState {
   final List<Product> products;
-  const ProductTransactionLoaded(this.products);
+  const ProductRecordLoaded(this.products);
 }
 
 class ProductError extends ProductState {
@@ -279,37 +281,37 @@ abstract class ProductEvent extends Equatable {
 
 class LoadProductsList extends ProductEvent {}
 
-class LoadProductsTransaction extends ProductEvent {
-  final String transactionId;
-  const LoadProductsTransaction(this.transactionId);
+class LoadProductsRecord extends ProductEvent {
+  final String recordId;
+  const LoadProductsRecord(this.recordId);
   @override
-  List<Object?> get props => [transactionId];
+  List<Object?> get props => [recordId];
 }
 
 class AddProduct extends ProductEvent {
   final String name;
   final ProductCondition state;
-  final String transactionId;
+  final String recordId;
   final double amount;
-  final Uint8List image;
+  final Uint8List? image;
   const AddProduct(
-      this.name, this.state, this.transactionId, this.amount, this.image);
+      this.name, this.state, this.recordId, this.amount, this.image);
   @override
-  List<Object?> get props => [name, state, transactionId, amount, image];
+  List<Object?> get props => [name, state, recordId, amount, image];
 }
 
 class UpdateProduct extends ProductEvent {
   final Product product;
   final String newName;
   final ProductCondition newState;
-  final String transactionId;
+  final String recordId;
   final double amount;
-  final Uint8List image;
-  const UpdateProduct(this.product, this.newName, this.newState,
-      this.transactionId, this.amount, this.image);
+  final Uint8List? image;
+  const UpdateProduct(this.product, this.newName, this.newState, this.recordId,
+      this.amount, this.image);
   @override
   List<Object?> get props =>
-      [product, newName, newState, transactionId, amount, image];
+      [product, newName, newState, recordId, amount, image];
 }
 
 class DeleteProduct extends ProductEvent {
@@ -331,10 +333,10 @@ class InitializeProducts extends ProductEvent {
 //---------------------bloc----------------
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final DatabaseHelper _dbHelper;
-
-  ProductBloc(this._dbHelper) : super(ProductInitial()) {
+  final RecordBloc recordBloc;
+  ProductBloc(this._dbHelper, this.recordBloc) : super(ProductInitial()) {
     on<LoadProductsList>(_onLoadProducts);
-    on<LoadProductsTransaction>(_onLoadProductsTransaction);
+    on<LoadProductsRecord>(_onLoadProductsRecord);
     on<AddProduct>(_onAddProduct);
     on<UpdateProduct>(_onUpdateProduct);
     on<DeleteProduct>(_onDeleteProduct);
@@ -405,15 +407,15 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-  Future<void> _onLoadProductsTransaction(
-      LoadProductsTransaction event, Emitter<ProductState> emit) async {
+  Future<void> _onLoadProductsRecord(
+      LoadProductsRecord event, Emitter<ProductState> emit) async {
     emit(ProductLoading());
     try {
       emit(ProductLoading());
       List<Map<String, dynamic>> conditions = [
         {
-          'key': 'transactionId',
-          'value': event.transactionId,
+          'key': 'recordId',
+          'value': event.recordId,
         },
       ];
 
@@ -423,7 +425,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       );
 
       final products = productsJson.map((e) => Product.fromJson(e)).toList();
-      emit(ProductTransactionLoaded(products));
+      emit(ProductRecordLoaded(products));
     } catch (e) {
       emit(const ProductError('Failed to load products.'));
     }
@@ -437,22 +439,22 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final newProduct = Product.Ctor(
           event.name,
           event.state,
-          event.transactionId,
+          event.recordId,
           event.amount,
-          (event.image.isEmpty) ? '' : imageId,
+          (event.image == null) ? '' : imageId,
           DateTime.now().toString(),
           DateTime.now().toString());
 
-      if (event.image.isNotEmpty) {
-        await _dbHelper.rawExecute(
-            newProduct.insertImageAsBlob(imageId, event.image, 'productImage'));
+      if (event.image != null) {
+        await _dbHelper.rawExecute(newProduct.insertImageAsBlob(
+            imageId, event.image as Uint8List, 'productImage'));
       }
 
       await _dbHelper.rawExecute(newProduct.insert());
 
       final currentState = state;
-      if (currentState is ProductTransactionLoaded) {
-        add(LoadProductsTransaction(event.transactionId));
+      if (currentState is ProductRecordLoaded) {
+        add(LoadProductsRecord(event.recordId));
       } else if (currentState is ProductListLoaded) {
         add(LoadProductsList());
       }
@@ -470,23 +472,23 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       final updatedProduct = event.product.copyWith(
         name: event.newName,
         state: event.newState,
-        transactionId: event.transactionId,
+        recordId: event.recordId,
         amount: event.amount,
-        imageId: event.image.isEmpty ? '' : imageId,
+        imageId: (event.image == null) ? '' : imageId,
         updatedAt: DateTime.now().toString(),
       );
 
-      if (event.image.isNotEmpty) {
+      if (event.image != null) {
         await _dbHelper
             .rawExecute(updatedProduct.deleteBlobData(event.product.imageId));
         await _dbHelper.rawExecute(updatedProduct.insertImageAsBlob(
-            imageId, event.image, 'productImage'));
+            imageId, event.image as Uint8List, 'productImage'));
       }
 
       await _dbHelper.rawExecute(event.product.update(updatedProduct));
       final currentState = state;
-      if (currentState is ProductTransactionLoaded) {
-        add(LoadProductsTransaction(event.transactionId));
+      if (currentState is ProductRecordLoaded) {
+        add(LoadProductsRecord(event.recordId));
       } else if (currentState is ProductListLoaded) {
         add(LoadProductsList());
       }
@@ -498,15 +500,42 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   Future<void> _onDeleteProduct(
       DeleteProduct event, Emitter<ProductState> emit) async {
     await _dbHelper.rawDelete(_tableName, event.product.id);
+    await _dbHelper
+        .rawExecute(event.product.deleteBlobData(event.product.imageId));
+    if (event.product.recordId.isNotEmpty && event.from != "record") {
+      final recordJson =
+          await _dbHelper.getAGrain("Record", event.product.recordId);
+      if (recordJson != null) {
+        final record = Record.fromJson(recordJson);
+
+        Uint8List? recordImage;
+        if (event.product.imageId.isNotEmpty) {
+          final result =
+              await _dbHelper.rawQuery(record.getBlobData('receipt'));
+          recordImage = result.first['data'] as Uint8List;
+        }
+        recordBloc.add(UpdateRecord(
+            record,
+            record.amount,
+            record.type,
+            record.kind,
+            record.stockValue + event.product.amount,
+            record.productIds,
+            recordImage,
+            record.date));
+      }
+    }
 
     if (event.from == "bloc") {
-    } else if (event.from == "transaction") {
+    } else if (event.from == "record") {
       final currentState = state;
-      if (currentState is ProductTransactionLoaded) {
+      if (currentState is ProductRecordLoaded) {
         final updatedProducts = currentState.products
             .where((product) => product.id != event.product.id)
             .toList();
-        emit(ProductTransactionLoaded(updatedProducts));
+        emit(ProductRecordLoaded(updatedProducts));
+      } else {
+        add(LoadProductsList());
       }
     } else {
       add(LoadProductsList());
