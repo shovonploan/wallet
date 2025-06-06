@@ -333,7 +333,7 @@ class InitializeProducts extends ProductEvent {
 //---------------------bloc----------------
 class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final DatabaseHelper _dbHelper;
-  final RecordBloc recordBloc;
+  final RecordBloc? recordBloc;
   ProductBloc(this._dbHelper, this.recordBloc) : super(ProductInitial()) {
     on<LoadProductsList>(_onLoadProducts);
     on<LoadProductsRecord>(_onLoadProductsRecord);
@@ -514,7 +514,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
               await _dbHelper.rawQuery(record.getBlobData('receipt'));
           recordImage = result.first['data'] as Uint8List;
         }
-        recordBloc.add(UpdateRecord(
+        recordBloc?.add(UpdateRecord(
             record,
             record.amount,
             record.type,

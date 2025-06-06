@@ -83,8 +83,8 @@ class SelectedDateRange extends DateRangeEvent {
 
 //---------------------bloc----------------
 class DateRangeBloc extends Bloc<DateRangeEvent, DateRangeState> {
-  final RecordBloc _recordBloc;
-  final AccountBloc _accountBloc;
+  final RecordBloc? _recordBloc;
+  final AccountBloc? _accountBloc;
 
   DateRangeBloc(this._recordBloc, this._accountBloc)
       : super(DateRangeLoaded(AllRange[0])) {
@@ -102,11 +102,11 @@ class DateRangeBloc extends Bloc<DateRangeEvent, DateRangeState> {
     }
     selectedRange ??= AllRange[0];
     emit(DateRangeLoaded(selectedRange));
-    _recordBloc.add(
+    _recordBloc?.add(
       LoadRecords(
         defaultRecordQuarry(
           this,
-          _accountBloc,
+          _accountBloc!,
         ),
       ),
     );

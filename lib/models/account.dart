@@ -322,8 +322,8 @@ class DeleteAccount extends AccountEvent {
 //---------------------bloc----------------
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   final DatabaseHelper _dbHelper;
-  final RecordBloc _recordBloc;
-  final DateRangeBloc _dateRangeBloc;
+  final RecordBloc? _recordBloc;
+  final DateRangeBloc? _dateRangeBloc;
 
   AccountBloc(this._dbHelper, this._recordBloc, this._dateRangeBloc)
       : super(AccountInitial()) {
@@ -355,9 +355,9 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           emit(AccountInitial());
           emit(AccountLoaded(accounts, selected));
         }
-        _recordBloc.add(
+        _recordBloc?.add(
           LoadRecords(
-            defaultRecordQuarry(_dateRangeBloc, this),
+            defaultRecordQuarry(_dateRangeBloc!, this),
           ),
         );
       } else {

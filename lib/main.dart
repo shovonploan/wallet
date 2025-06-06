@@ -44,85 +44,109 @@ void main() async {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (context) =>
-                EncryptionKeyBloc(databaseHelper)..add(EncryptionKeyLoad()),
-          ),
+              create: (context) =>
+                  EncryptionKeyBloc(databaseHelper)..add(EncryptionKeyLoad())),
           BlocProvider(
-            create: (context) => JobBloc(databaseHelper)..add(LoadJobs()),
-          ),
+              create: (context) =>
+                  AuthenticateBloc(databaseHelper)..add(LoadAuthenticate())),
           BlocProvider(
-            create: (context) =>
-                AuthenticateBloc(databaseHelper)..add(LoadAuthenticate()),
-          ),
-          BlocProvider(
-            create: (context) => DateRangeBloc(
-              context.read<RecordBloc>(),
-              context.read<AccountBloc>(),
-            )..add(const SelectedDateRange(Duration(days: 7))),
-          ),
-          BlocProvider(
-            create: (context) =>
-                NavigationBloc()..add(const NavigationUpdate(HomeScreen())),
-          ),
-          BlocProvider(
-            create: (context) =>
-                KindBloc(databaseHelper)..add(const LoadKinds()),
-          ),
-          BlocProvider(
-            create: (context) => AccountBloc(
-              databaseHelper,
-              context.read<RecordBloc>(),
-              context.read<DateRangeBloc>(),
-            )..add(LoadAccounts()),
-          ),
-          BlocProvider(
-            create: (context) {
-              return RecordBloc(
-                databaseHelper,
-                context.read<ProductBloc>(),
-                context.read<AccountBloc>(),
-              )..add(
-                  LoadRecords(
-                    defaultRecordQuarry(
-                      context.read<DateRangeBloc>(),
-                      context.read<AccountBloc>(),
-                    ),
-                  ),
-                );
-            },
-          ),
-          BlocProvider(
-            create: (context) => ProductBloc(
-              databaseHelper,
-              context.read<RecordBloc>(),
-            )..add(LoadProductsList()),
-          ),
+              create: (context) =>
+                  KindBloc(databaseHelper)..add(const LoadKinds())),
         ],
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: appTheme,
-          home: BlocBuilder<EncryptionKeyBloc, EncryptionKeyState>(
-              builder: (context, state) {
-            switch (state) {
-              case EncryptionKeyLoading() || EncryptionKeyInitial():
-                return const Loading();
-              case EncryptionKeyNotFound():
-                return const EncryptionKeySetupScreen();
-              case EncryptionKeyError():
-                return SafeArea(
-                    child: Scaffold(
-                  body: Center(
-                    child: Text(
-                      state.message,
-                      style: const TextStyle(color: Colors.red),
+        child: Builder(
+          builder: (context) {
+            RecordBloc recordBloc = RecordBloc(
+              databaseHelper,
+              ProductBloc(databaseHelper, null),
+              AccountBloc(databaseHelper, null, null),
+            );
+
+            final fullProductBloc = ProductBloc(databaseHelper, recordBloc);
+
+            final accountBloc = AccountBloc(databaseHelper, recordBloc, null);
+
+            final fullDateRangeBloc = DateRangeBloc(recordBloc, accountBloc);
+
+            final fullRecordBloc = RecordBloc(
+              databaseHelper,
+              fullProductBloc,
+              accountBloc,
+            );
+
+            final fullAccountBloc = AccountBloc(
+              databaseHelper,
+              fullRecordBloc,
+              fullDateRangeBloc,
+            );
+
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => fullProductBloc
+                    ..add(
+                      LoadProductsList(),
                     ),
-                  ),
-                  backgroundColor: Colors.red,
-                ));
-              default:
-                return const AuthenticationScreen();
-            }
-          }),
+                ),
+                BlocProvider(
+                  create: (_) => fullAccountBloc
+                    ..add(
+                      LoadAccounts(),
+                    ),
+                ),
+                BlocProvider(
+                  create: (_) => fullDateRangeBloc
+                    ..add(
+                      const SelectedDateRange(
+                        Duration(days: 7),
+                      ),
+                    ),
+                ),
+                BlocProvider(
+                  create: (_) => fullRecordBloc
+                    ..add(
+                      LoadRecords(
+                        defaultRecordQuarry(fullDateRangeBloc, fullAccountBloc),
+                      ),
+                    ),
+                ),
+                BlocProvider(
+                  create: (_) => NavigationBloc()
+                    ..add(
+                      const NavigationUpdate(
+                        HomeScreen(),
+                      ),
+                    ),
+                ),
+              ],
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: appTheme,
+                home: BlocBuilder<EncryptionKeyBloc, EncryptionKeyState>(
+                  builder: (context, state) {
+                    switch (state) {
+                      case EncryptionKeyLoading() || EncryptionKeyInitial():
+                        return const Loading();
+                      case EncryptionKeyNotFound():
+                        return const EncryptionKeySetupScreen();
+                      case EncryptionKeyError():
+                        return SafeArea(
+                            child: Scaffold(
+                          body: Center(
+                            child: Text(
+                              state.message,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                        ));
+                      default:
+                        return const AuthenticationScreen();
+                    }
+                  },
+                ),
+              ), // or your next widget
+            );
+          },
         ),
       ),
     ),
