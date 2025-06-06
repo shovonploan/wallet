@@ -69,68 +69,35 @@ class Transfer extends RecordType {
   String toString() => 'Transfer ($fromAccountId -> $toAccountId)';
 }
 
+enum RecordIndexKeyOperator {
+  OR('OR'),
+  AND('AND'),
+  LAST('LAST');
+
+  final String operator;
+  const RecordIndexKeyOperator(this.operator);
+}
+
 abstract class RecordIndexKey {
   final String value;
-  const RecordIndexKey(this.value);
-  Map<String, dynamic> toJson();
-  factory RecordIndexKey.fromMap(Map<String, dynamic> map) {
-    switch (map['key']) {
-      case 'accountId':
-        return AccountId(map['value']);
-      case 'type':
-        return Type(map['value']);
-      case 'kind':
-        return KindKey(map['value']);
-      case 'date':
-        return Date(map['value']);
-      default:
-        throw Exception('Unknown record index key: ${map['key']}');
-    }
-  }
+  final RecordIndexKeyOperator operator;
+  const RecordIndexKey(this.value, this.operator);
 }
 
 class AccountId extends RecordIndexKey {
-  const AccountId(super.value);
-  @override
-  Map<String, dynamic> toJson() => {
-        'key': 'accountId',
-        'value': value,
-      };
-  @override
-  String toString() => 'accountId';
+  const AccountId(super.value, super.operator);
 }
 
-class Type extends RecordIndexKey {
-  const Type(super.value);
-  @override
-  Map<String, dynamic> toJson() => {
-        'key': 'type',
-        'value': value,
-      };
-  @override
-  String toString() => 'type';
+class RecordIndexType extends RecordIndexKey {
+  const RecordIndexType(super.value, super.operator);
 }
 
 class KindKey extends RecordIndexKey {
-  const KindKey(super.value);
-  @override
-  Map<String, dynamic> toJson() => {
-        'key': 'kind',
-        'value': value,
-      };
-  @override
-  String toString() => 'kind';
+  const KindKey(super.value, super.operator);
 }
 
 class Date extends RecordIndexKey {
-  const Date(super.value);
-  @override
-  Map<String, dynamic> toJson() => {
-        'key': 'date',
-        'value': value,
-      };
-  @override
-  String toString() => 'date';
+  const Date(super.value, super.operator);
 }
 
 String _tableName = "Record";
@@ -267,7 +234,7 @@ class Record extends DBGrain {
   @override
   Map<String, String> get indexs => {
         'type': type.toString(),
-        'kind': kind?.toString() ?? '',
+        'kindId': kind?.id ?? '',
         'date': date,
       };
 
@@ -303,10 +270,10 @@ class RecordLoading extends RecordState {}
 
 class RecordListLoaded extends RecordState {
   final List<Record> records;
-  final RecordIndexKey keyValue;
-  const RecordListLoaded(this.records, this.keyValue);
+  final List<RecordIndexKey> keyValues;
+  const RecordListLoaded(this.records, this.keyValues);
   @override
-  List<Object?> get props => [records, keyValue];
+  List<Object?> get props => [records, keyValues];
 }
 
 class RecordError extends RecordState {
@@ -326,10 +293,10 @@ abstract class RecordEvent extends Equatable {
 }
 
 class LoadRecords extends RecordEvent {
-  final RecordIndexKey keyValue;
-  const LoadRecords(this.keyValue);
+  final List<RecordIndexKey> keyValues;
+  const LoadRecords(this.keyValues);
   @override
-  List<Object?> get props => [keyValue];
+  List<Object?> get props => [keyValues];
 }
 
 class AddRecord extends RecordEvent {
@@ -398,47 +365,6 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
     on<InitializeRecords>(_onInitializeRecords);
   }
 
-  Future<void> _onLoadRecords(
-      LoadRecords event, Emitter<RecordState> emit) async {
-    try {
-      emit(RecordLoading());
-
-      List<Map<String, dynamic>> conditions = [
-        if (event.keyValue is AccountId)
-          {
-            'key': event.keyValue.toString(),
-            'value': event.keyValue.value,
-          }
-        else if (event.keyValue is Type)
-          {
-            'key': event.keyValue.toString(),
-            'value': event.keyValue.value,
-          }
-        else if (event.keyValue is KindKey)
-          {
-            'key': event.keyValue.toString(),
-            'value': event.keyValue.value,
-          }
-        else if (event.keyValue is Date)
-          {
-            'key': event.keyValue.toString(),
-            'value': event.keyValue.value,
-            'comparison': '>='
-          }
-      ];
-
-      final recordJson = await _dbHelper.getIndexedGrain(
-        _tableName,
-        conditions,
-      );
-
-      final records = recordJson.map((e) => Record.fromJson(e)).toList();
-      emit(RecordListLoaded(records, event.keyValue));
-    } catch (e) {
-      emit(const RecordError('Failed to load records.'));
-    }
-  }
-
   Future<void> _onAddRecord(AddRecord event, Emitter<RecordState> emit) async {
     try {
       emit(RecordLoading());
@@ -455,7 +381,7 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
 
       final currentState = state;
       if (currentState is RecordListLoaded) {
-        add(LoadRecords(currentState.keyValue));
+        add(LoadRecords(currentState.keyValues));
       } else {
         emit(RecordInitial());
       }
@@ -499,6 +425,61 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
     }
   }
 
+  Future<void> _onLoadRecords(
+      LoadRecords event, Emitter<RecordState> emit) async {
+    try {
+      emit(RecordLoading());
+
+      List<Map<String, dynamic>> conditions = [];
+
+      for (var keyValue in event.keyValues) {
+        Map<String, dynamic> condition = {};
+
+        if (keyValue is AccountId) {
+          condition = {
+            'comparison': 'LIKE',
+            'value': "%${keyValue.value}%",
+          };
+        } else if (keyValue is RecordIndexType) {
+          condition = {
+            'comparison': 'LIKE',
+            'value': "%${keyValue.value}%",
+          };
+        } else if (keyValue is KindKey) {
+          condition = {
+            'key': 'kindId',
+            'value': keyValue.value,
+          };
+        } else if (keyValue is Date) {
+          condition = {
+            'key': 'date',
+            'value': keyValue.value,
+            'comparison': '>='
+          };
+        } else {
+          continue;
+        }
+
+        if (keyValue.operator.operator == 'OR') {
+          condition['operator'] = 'OR';
+        } else if (keyValue.operator.operator == 'AND') {
+          condition['operator'] = 'AND';
+        }
+        conditions.add(condition);
+      }
+
+      final recordJson = await _dbHelper.getIndexedGrain(
+        _tableName,
+        conditions,
+      );
+
+      final records = recordJson.map((e) => Record.fromJson(e)).toList();
+      emit(RecordListLoaded(records, event.keyValues));
+    } catch (e) {
+      emit(const RecordError('Failed to load records.'));
+    }
+  }
+
   Future<void> _onUpdateRecord(
       UpdateRecord event, Emitter<RecordState> emit) async {
     try {
@@ -519,7 +500,7 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
       await _dbHelper.rawExecute(record.update(record));
       final currentState = state;
       if (currentState is RecordListLoaded) {
-        add(LoadRecords(currentState.keyValue));
+        add(LoadRecords(currentState.keyValues));
       } else {
         emit(RecordInitial());
       }
@@ -545,7 +526,7 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
     }
     final currentState = state;
     if (currentState is RecordListLoaded) {
-      add(LoadRecords(currentState.keyValue));
+      add(LoadRecords(currentState.keyValues));
     } else {
       emit(RecordInitial());
     }

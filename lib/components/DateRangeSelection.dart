@@ -23,7 +23,7 @@ class DateRangeSelection extends StatelessWidget {
         ),
       ),
       child:
-          BlocBuilder<DataRangeBloc, DataRangeState>(builder: (context, state) {
+          BlocBuilder<DateRangeBloc, DateRangeState>(builder: (context, state) {
         return DropdownButtonFormField<String>(
           value: state.range.duration.inDays.toString(),
           focusNode: dateRangeNode,
@@ -40,8 +40,8 @@ class DateRangeSelection extends StatelessWidget {
           }).toList(),
           onChanged: (value) {
             context
-                .read<DataRangeBloc>()
-                .add(SelectedDataRange(Duration(days: int.parse(value!))));
+                .read<DateRangeBloc>()
+                .add(SelectedDateRange(Duration(days: int.parse(value!))));
           },
           validator: (value) =>
               value == null ? 'Please select a Date Range' : null,

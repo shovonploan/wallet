@@ -55,8 +55,10 @@ void main() async {
                 AuthenticateBloc(databaseHelper)..add(LoadAuthenticate()),
           ),
           BlocProvider(
-            create: (context) => DataRangeBloc()
-              ..add(const SelectedDataRange(Duration(days: 7))),
+            create: (context) => DateRangeBloc(
+              context.read<RecordBloc>(),
+              context.read<AccountBloc>(),
+            )..add(const SelectedDateRange(Duration(days: 7))),
           ),
           BlocProvider(
             create: (context) =>
@@ -67,24 +69,33 @@ void main() async {
                 KindBloc(databaseHelper)..add(const LoadKinds()),
           ),
           BlocProvider(
-            create: (context) =>
-                AccountBloc(databaseHelper)..add(LoadAccounts()),
+            create: (context) => AccountBloc(
+              databaseHelper,
+              context.read<RecordBloc>(),
+              context.read<DateRangeBloc>(),
+            )..add(LoadAccounts()),
           ),
           BlocProvider(
             create: (context) {
-              final now = DateTime.now();
-              final target = now
-                  .subtract(context.read<DataRangeBloc>().state.range.duration);
-              final value =
-                  DateTime(target.year, target.month, target.day).toString();
-              return RecordBloc(databaseHelper, context.read<ProductBloc>(), context.read<AccountBloc>(),)
-                ..add(LoadRecords(Date(value)));
+              return RecordBloc(
+                databaseHelper,
+                context.read<ProductBloc>(),
+                context.read<AccountBloc>(),
+              )..add(
+                  LoadRecords(
+                    defaultRecordQuarry(
+                      context.read<DateRangeBloc>(),
+                      context.read<AccountBloc>(),
+                    ),
+                  ),
+                );
             },
           ),
           BlocProvider(
-            create: (context) =>
-                ProductBloc(databaseHelper, context.read<RecordBloc>(),)
-                  ..add(LoadProductsList()),
+            create: (context) => ProductBloc(
+              databaseHelper,
+              context.read<RecordBloc>(),
+            )..add(LoadProductsList()),
           ),
         ],
         child: MaterialApp(

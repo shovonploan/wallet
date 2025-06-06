@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wallet/constants/common.dart';
+import 'package:wallet/models/account.dart';
+import 'package:wallet/models/record.dart';
 
 abstract class Range {
   Duration duration;
@@ -45,47 +48,51 @@ final List<Range> AllRange = [
 ];
 
 //---------------State-----------------------
-abstract class DataRangeState extends Equatable {
+abstract class DateRangeState extends Equatable {
   final Range range;
-  const DataRangeState(this.range);
+  const DateRangeState(this.range);
   @override
   List<Object?> get props => [];
 }
 
-class DateRangeInitial extends DataRangeState {
+class DateRangeInitial extends DateRangeState {
   const DateRangeInitial(super.range);
   @override
   List<Object?> get props => [range];
 }
 
-class DataRangeLoaded extends DataRangeState {
-  const DataRangeLoaded(super.range);
+class DateRangeLoaded extends DateRangeState {
+  const DateRangeLoaded(super.range);
   @override
   List<Object?> get props => [range];
 }
 
 //--------------Event----------------------
-class DataRangeEvent extends Equatable {
-  const DataRangeEvent();
+class DateRangeEvent extends Equatable {
+  const DateRangeEvent();
   @override
   List<Object?> get props => [];
 }
 
-class SelectedDataRange extends DataRangeEvent {
+class SelectedDateRange extends DateRangeEvent {
   final Duration days;
-  const SelectedDataRange(this.days);
+  const SelectedDateRange(this.days);
   @override
   List<Object?> get props => [days];
 }
 
 //---------------------bloc----------------
-class DataRangeBloc extends Bloc<DataRangeEvent, DataRangeState> {
-  DataRangeBloc() : super(DataRangeLoaded(AllRange[0])) {
-    on<SelectedDataRange>(_onSelectedDataRange);
+class DateRangeBloc extends Bloc<DateRangeEvent, DateRangeState> {
+  final RecordBloc _recordBloc;
+  final AccountBloc _accountBloc;
+
+  DateRangeBloc(this._recordBloc, this._accountBloc)
+      : super(DateRangeLoaded(AllRange[0])) {
+    on<SelectedDateRange>(_onSelectedDateRange);
   }
 
-  Future<void> _onSelectedDataRange(
-      SelectedDataRange event, Emitter<DataRangeState> emit) async {
+  Future<void> _onSelectedDateRange(
+      SelectedDateRange event, Emitter<DateRangeState> emit) async {
     emit(DateRangeInitial(state.range));
     Range? selectedRange;
     for (Range range in AllRange) {
@@ -94,6 +101,14 @@ class DataRangeBloc extends Bloc<DataRangeEvent, DataRangeState> {
       }
     }
     selectedRange ??= AllRange[0];
-    emit(DataRangeLoaded(selectedRange));
+    emit(DateRangeLoaded(selectedRange));
+    _recordBloc.add(
+      LoadRecords(
+        defaultRecordQuarry(
+          this,
+          _accountBloc,
+        ),
+      ),
+    );
   }
 }

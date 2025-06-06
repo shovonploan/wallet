@@ -3,10 +3,12 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:wallet/bloc/dateRange.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/database/database.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wallet/models/record.dart';
 
 String _tableName = "Account";
 
@@ -320,8 +322,11 @@ class DeleteAccount extends AccountEvent {
 //---------------------bloc----------------
 class AccountBloc extends Bloc<AccountEvent, AccountState> {
   final DatabaseHelper _dbHelper;
+  final RecordBloc _recordBloc;
+  final DateRangeBloc _dateRangeBloc;
 
-  AccountBloc(this._dbHelper) : super(AccountInitial()) {
+  AccountBloc(this._dbHelper, this._recordBloc, this._dateRangeBloc)
+      : super(AccountInitial()) {
     on<LoadAccounts>(_onLoadAccounts);
     on<SelectedAccounts>(_onSelectedAccounts);
     on<AddAccount>(_onAddAccount);
@@ -350,6 +355,11 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           emit(AccountInitial());
           emit(AccountLoaded(accounts, selected));
         }
+        _recordBloc.add(
+          LoadRecords(
+            defaultRecordQuarry(_dateRangeBloc, this),
+          ),
+        );
       } else {
         final selected = accounts.map((account) => account.id).toList();
         emit(AccountLoaded(accounts, selected));

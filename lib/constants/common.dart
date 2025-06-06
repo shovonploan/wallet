@@ -7,7 +7,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:uuid/data.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:wallet/bloc/dateRange.dart';
 import 'package:wallet/constants/constant.dart';
+import 'package:wallet/models/account.dart';
+import 'package:wallet/models/record.dart';
 
 String getRootDir() {
   return Platform.isAndroid
@@ -103,4 +106,22 @@ void pushPopIn(BuildContext context, Widget page) {
       },
     ),
   );
+}
+
+List<RecordIndexKey> defaultRecordQuarry(DateRangeBloc dateRangeBloc, AccountBloc accountBloc){
+  final now = DateTime.now();
+  final range = dateRangeBloc.state.range.duration;
+  final target = now.subtract(range);
+  final dateStr = DateTime(target.year, target.month, target.day).toString();
+
+  final accountState = accountBloc.state;
+  final selectedAccounts = (accountState is AccountLoaded)
+      ? accountState.selectedAccounts
+      : [];
+
+  return [
+    for (final account in selectedAccounts)
+      AccountId(account, RecordIndexKeyOperator.OR),
+    Date(dateStr, RecordIndexKeyOperator.AND),
+  ];
 }
