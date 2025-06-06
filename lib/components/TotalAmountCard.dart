@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet/models/account.dart';
+import 'package:wallet/models/record.dart';
 
 import '../constants/common.dart';
 
@@ -77,13 +78,23 @@ class TotalAmountCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          Text(
-            "3000",
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
+          BlocBuilder<RecordBloc, RecordState>(builder: (context, state) {
+            double amount = 0.0;
+            if (state is RecordListLoaded) {
+              for (final record in state.records) {
+                if (record.type is Expense) {
+                  amount += record.amount;
+                }
+              }
+            }
+            return Text(
+              "$amount",
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+            );
+          }),
         ],
       ),
     );
@@ -111,13 +122,24 @@ class TotalAmountCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          Text(
-            "3000",
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.greenAccent,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
+          BlocBuilder<RecordBloc, RecordState>(builder: (context, state) {
+            double amount = 0.0;
+            if (state is RecordListLoaded) {
+              for (final record in state.records) {
+                if (record.type is Income) {
+                  amount += record.amount;
+                }
+              }
+            }
+
+            return Text(
+              "$amount",
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: Colors.greenAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+            );
+          }),
         ],
       ),
     );

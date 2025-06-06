@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet/Pages/Home.dart';
 import 'package:wallet/bloc/mainNavigation.dart';
+import 'package:wallet/bloc/settings.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/constants/theme.dart';
 import 'package:wallet/database/database.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
-import 'package:wallet/models/jobs.dart';
 import 'package:wallet/models/kind.dart';
 import 'package:wallet/models/product.dart';
 import 'package:wallet/models/record.dart';
@@ -44,14 +44,23 @@ void main() async {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-              create: (context) =>
-                  EncryptionKeyBloc(databaseHelper)..add(EncryptionKeyLoad())),
+            create: (context) => EncryptionKeyBloc(databaseHelper)
+              ..add(
+                EncryptionKeyLoad(),
+              ),
+          ),
           BlocProvider(
-              create: (context) =>
-                  AuthenticateBloc(databaseHelper)..add(LoadAuthenticate())),
+            create: (context) => AuthenticateBloc(databaseHelper)
+              ..add(
+                LoadAuthenticate(),
+              ),
+          ),
           BlocProvider(
-              create: (context) =>
-                  KindBloc(databaseHelper)..add(const LoadKinds())),
+            create: (context) => KindBloc(databaseHelper)
+              ..add(
+                const LoadKinds(),
+              ),
+          ),
         ],
         child: Builder(
           builder: (context) {
@@ -116,6 +125,9 @@ void main() async {
                         HomeScreen(),
                       ),
                     ),
+                ),
+                BlocProvider(
+                  create: (context) => SettingsBloc(context, databaseHelper,),
                 ),
               ],
               child: MaterialApp(

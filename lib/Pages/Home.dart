@@ -1,13 +1,13 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet/components/DateRangeSelection.dart';
 import 'package:wallet/components/DropDownSelectMultiple.dart';
 import 'package:wallet/components/MainDrawer.dart';
+import 'package:wallet/components/RecordTile.dart';
 import 'package:wallet/components/TotalAmountCard.dart';
-import 'package:wallet/components/filepicker.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/models/account.dart';
+import 'package:wallet/models/record.dart';
 
 import '../constants/theme.dart';
 import 'Account/CreateAccount.dart';
@@ -65,10 +65,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               return Container();
                             } else {
                               return Expanded(
-                                  child: dropDown(
-                                state,
-                                context.read<AccountBloc>(),
-                              ));
+                                child: dropDown(
+                                  state,
+                                  context.read<AccountBloc>(),
+                                ),
+                              );
                             }
                           case AccountLoading():
                             return const CircularProgressIndicator();
@@ -97,18 +98,27 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               DateRangeSelection(dateRangeNode: dateRangeNode),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  Uint8List? imageBytes = (await pickImageSafely()) as Uint8List?;
-                  if (imageBytes != null) {
-                    // setState(() {
-                    //   _selectedImageBytes = imageBytes;
-                    // });
+              BlocBuilder<RecordBloc, RecordState>(
+                builder: (context, state) {
+                  switch (state) {
+                    case RecordLoading():
+                      return const CircularProgressIndicator();
+                    case RecordListLoaded():
+                      return Column(
+                        children: state.records
+                            .map(
+                              (record) => RecordTile(
+                                record: record,
+                              ),
+                            )
+                            .toList(),
+                      );
+
+                    default:
+                      return Container();
                   }
                 },
-                child: Text('Pick Image'),
-              ),
-
+              )
             ],
           ),
         ),

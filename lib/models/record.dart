@@ -34,11 +34,13 @@ abstract class RecordType {
 class Income extends RecordType {
   final String accountId;
   const Income(this.accountId) : super();
+
   @override
   Map<String, dynamic> toJson() => {
         'type': 'Income',
         'accountId': accountId,
       };
+
   @override
   String toString() => 'Income ($accountId)';
 }
@@ -46,11 +48,13 @@ class Income extends RecordType {
 class Expense extends RecordType {
   final String accountId;
   const Expense(this.accountId) : super();
+
   @override
   Map<String, dynamic> toJson() => {
         'type': 'Expense',
         'accountId': accountId,
       };
+
   @override
   String toString() => 'Expense ($accountId)';
 }
@@ -59,12 +63,14 @@ class Transfer extends RecordType {
   final String fromAccountId;
   final String toAccountId;
   const Transfer(this.fromAccountId, this.toAccountId) : super();
+
   @override
   Map<String, dynamic> toJson() => {
         'type': 'Transfer',
         'fromAccountId': fromAccountId,
         'toAccountId': toAccountId,
       };
+
   @override
   String toString() => 'Transfer ($fromAccountId -> $toAccountId)';
 }

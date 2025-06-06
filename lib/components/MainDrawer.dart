@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wallet/Pages/Account/Accounts.dart';
 import 'package:wallet/Pages/Home.dart';
+import 'package:wallet/Pages/Settings.dart';
 import 'package:wallet/bloc/mainNavigation.dart';
 
 import '../constants/theme.dart';
@@ -65,13 +66,13 @@ class MainDrawer extends StatelessWidget {
                 leading: const Icon(Icons.account_balance, color: Colors.white),
                 title: const Text('Accounts',
                     style: TextStyle(color: Colors.white)),
-                onTap: () => _navigateTo(context, state, const Accounts()),
+                onTap: () => _navigateTo(context, state, const AccountsPage()),
               ),
               ListTile(
                 leading: const Icon(Icons.settings, color: Colors.white),
                 title: const Text('Settings',
                     style: TextStyle(color: Colors.white)),
-                onTap: () {},
+                onTap: () => _navigateTo(context, state, const SettingsPage()),
               ),
               const Divider(color: Colors.white54),
               ListTile(

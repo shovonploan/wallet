@@ -369,6 +369,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
     }
   }
 
+  // TODO : Currency Check
   Future<void> _onSelectedAccounts(
       SelectedAccounts event, Emitter<AccountState> emit) async {
     final currentState = state;

@@ -7,14 +7,14 @@ import 'package:wallet/models/account.dart';
 
 import 'CreateAccount.dart';
 
-class Accounts extends StatefulWidget {
-  const Accounts({super.key});
+class AccountsPage extends StatefulWidget {
+  const AccountsPage({super.key});
 
   @override
-  State<Accounts> createState() => _AccountsState();
+  State<AccountsPage> createState() => _AccountsPageState();
 }
 
-class _AccountsState extends State<Accounts> {
+class _AccountsPageState extends State<AccountsPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(

@@ -17,6 +17,8 @@ import 'package:wallet/models/kind.dart';
 import 'package:wallet/models/product.dart';
 import 'package:wallet/models/record.dart';
 
+// TODO: might need to remove history to save space;
+
 final Map<String, DBGrain> _allTables = {
   "Authenticate": Authenticate.defaultCtor(),
   "Account": Account.defaultCtor(),
@@ -547,9 +549,11 @@ abstract class DBGrain {
         'VALUES (\'$id\', \'$object\', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);\n';
 
     if (indexs.isNotEmpty) {
-      sql += 'INSERT INTO ${tableName}_cIdx (id, key, value) VALUES ';
+      sql += 'INSERT INTO ${tableName}_cIdx ($primaryKey, key, value) VALUES ';
       for (var entry in indexs.entries) {
-        sql += '($id, \'${entry.key}\', \'${entry.value}\'),';
+        if (entry.value.isNotEmpty) {
+          sql += '(\'$id\', \'${entry.key}\', \'${entry.value}\'),';
+        }
       }
       sql = sql.substring(0, sql.length - 1);
       sql += ';';
