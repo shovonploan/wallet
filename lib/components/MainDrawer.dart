@@ -68,6 +68,7 @@ class MainDrawer extends StatelessWidget {
                     style: TextStyle(color: Colors.white)),
                 onTap: () => _navigateTo(context, state, const AccountsPage()),
               ),
+              // TODO: Add record pages
               ListTile(
                 leading: const Icon(Icons.settings, color: Colors.white),
                 title: const Text('Settings',

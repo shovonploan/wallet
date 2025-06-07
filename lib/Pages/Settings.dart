@@ -41,6 +41,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         height: 20,
                       )
                     : Container(),
+                // TODO: SQL Backup Option
+                // TODO: Show encryption key Qr.
               ],
             );
           }),

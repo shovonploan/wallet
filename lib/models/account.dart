@@ -346,7 +346,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         if (currentState.selectedAccounts.isEmpty) {
           emit(AccountInitial());
           emit(AccountLoaded(
-              accounts, accounts.map((account) => account.id).toList()));
+              accounts, currentState.selectedAccounts));
         } else {
           final selected = currentState.selectedAccounts
               .where((id) =>
@@ -361,15 +361,13 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
           ),
         );
       } else {
-        final selected = accounts.map((account) => account.id).toList();
-        emit(AccountLoaded(accounts, selected));
+        emit(AccountLoaded(accounts, const []));
       }
     } catch (e) {
       emit(const AccountError('Failed to load accounts.'));
     }
   }
 
-  // TODO : Currency Check
   Future<void> _onSelectedAccounts(
       SelectedAccounts event, Emitter<AccountState> emit) async {
     final currentState = state;

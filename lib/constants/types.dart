@@ -18,3 +18,10 @@ class Some<T> extends Option<T> {
 }
 
 class None extends Option {}
+
+class StringListPair {
+  final String first;
+  final Map<String, dynamic> second;
+
+  const StringListPair(this.first, this.second);
+}

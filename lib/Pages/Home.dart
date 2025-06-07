@@ -6,6 +6,7 @@ import 'package:wallet/components/MainDrawer.dart';
 import 'package:wallet/components/RecordTile.dart';
 import 'package:wallet/components/TotalAmountCard.dart';
 import 'package:wallet/constants/common.dart';
+import 'package:wallet/constants/types.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/record.dart';
 
@@ -175,23 +176,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   DropDownSelectMultiple dropDown(AccountLoaded state, AccountBloc bloc) {
     return DropDownSelectMultiple(
-      heading: 'Accounts',
-      allItems: state.allAccounts
-          .map((account) => {'key': account.name, 'value': account.id})
-          .toList(),
-      selectedItems: state.allAccounts
-          .where(
-            (account) => state.selectedAccounts.contains(account.id),
-          )
-          .map((account) => {'key': account.name, 'value': account.id})
-          .toList(),
-      onSelected: (selectedItems) {
-        List<String> ids =
-            selectedItems.map((e) => e['value'] as String).toList();
-        bloc.add(
-          SelectedAccounts(ids),
-        );
-      },
-    );
+        heading: 'Accounts',
+        allItems: state.allAccounts
+            .map((account) => StringListPair(
+                account.name, {'id': account.id, 'currency': account.currency}))
+            .toList(),
+        selectedItems: state.allAccounts
+            .where(
+              (account) => state.selectedAccounts.contains(account.id),
+            )
+            .map((account) => StringListPair(
+                account.name, {'id': account.id, 'currency': account.currency}))
+            .toList(),
+        onSelected: (selectedItems) {
+          List<String> ids =
+              selectedItems.map((e) => e.second['id'] as String).toList();
+          bloc.add(
+            SelectedAccounts(ids),
+          );
+        },
+        validate: (selectedItems) {
+          if (selectedItems.map((e) => e.second['currency']).toSet().length >
+              1) {
+            return 'All the currencies should be the same';
+          }
+          return null;
+        });
   }
 }

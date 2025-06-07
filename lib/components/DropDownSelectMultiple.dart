@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:wallet/constants/types.dart';
 
 class DropDownSelectMultiple extends StatefulWidget {
   final String heading;
-  final List<Map<String, dynamic>> allItems;
-  final List<Map<String, dynamic>> selectedItems;
-  final Function(List<Map<String, dynamic>>) onSelected;
+  final List<StringListPair> allItems;
+  final List<StringListPair> selectedItems;
+  final Function(List<StringListPair>) onSelected;
+  final String? Function(List<StringListPair>)? validate;
 
   const DropDownSelectMultiple({
     required this.heading,
     required this.allItems,
     required this.selectedItems,
     required this.onSelected,
+    this.validate,
     super.key,
   });
 
@@ -19,7 +22,7 @@ class DropDownSelectMultiple extends StatefulWidget {
 }
 
 class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
-  ValueNotifier<List<Map<String, dynamic>>> selectedItems = ValueNotifier([]);
+  ValueNotifier<List<StringListPair>> selectedItems = ValueNotifier([]);
 
   @override
   void initState() {
@@ -28,8 +31,7 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
   }
 
   void _showMultiSelectDialog() async {
-    final List<Map<String, dynamic>>? result =
-        await showDialog<List<Map<String, dynamic>>>(
+    final List<StringListPair>? result = await showDialog<List<StringListPair>>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -41,9 +43,25 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
       },
     );
 
+    bool validate() {
+      String? message = widget.validate?.call(selectedItems.value);
+      if (message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text(message),
+          ),
+        );
+        return false;
+      }
+      return true;
+    }
+
     if (result != null) {
-      selectedItems.value = result;
-      widget.onSelected(selectedItems.value);
+      if (validate()) {
+        selectedItems.value = result;
+        widget.onSelected(selectedItems.value);
+      }
     }
   }
 
@@ -51,7 +69,7 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _showMultiSelectDialog,
-      child: ValueListenableBuilder<List<Map<String, dynamic>>>(
+      child: ValueListenableBuilder<List<StringListPair>>(
         valueListenable: selectedItems,
         builder: (_, value, __) {
           return Container(
@@ -68,7 +86,7 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
                   value.isEmpty
                       ? widget.heading
                       : selectedItems.value
-                          .map((item) => item['key'].toString())
+                          .map((item) => item.first.toString())
                           .join(', '),
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
@@ -87,8 +105,8 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
 
 class MultiSelectDialog extends StatefulWidget {
   final String heading;
-  final List<Map<String, dynamic>> items;
-  final List<Map<String, dynamic>> selectedItems;
+  final List<StringListPair> items;
+  final List<StringListPair> selectedItems;
 
   const MultiSelectDialog({
     super.key,
@@ -102,7 +120,7 @@ class MultiSelectDialog extends StatefulWidget {
 }
 
 class _MultiSelectDialogState extends State<MultiSelectDialog> {
-  late ValueNotifier<List<Map<String, dynamic>>> tempSelectedItems;
+  late ValueNotifier<List<StringListPair>> tempSelectedItems;
 
   @override
   void initState() {
@@ -115,26 +133,25 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
     return AlertDialog(
       title: Text(widget.heading),
       content: SingleChildScrollView(
-        child: ValueListenableBuilder<List<Map<String, dynamic>>>(
+        child: ValueListenableBuilder<List<StringListPair>>(
           valueListenable: tempSelectedItems,
           builder: (_, value, __) {
             return ListBody(
-              children: widget.items.map((Map<String, dynamic> item) {
+              children: widget.items.map((StringListPair item) {
                 return CheckboxListTile(
-                  value: value.any((element) => element['key'] == item['key']),
-                  title: Text(item['key'].toString()),
+                  value: value.any((element) => element.first == item.first),
+                  title: Text(item.first.toString()),
                   onChanged: (bool? selected) {
                     if (selected == true) {
                       if (!value
-                          .any((element) => element['key'] == item['key'])) {
+                          .any((element) => element.first == item.first)) {
                         tempSelectedItems.value =
                             List.from(tempSelectedItems.value)..add(item);
                       }
                     } else {
-                      tempSelectedItems.value =
-                          List.from(tempSelectedItems.value)
-                            ..removeWhere(
-                                (element) => element['key'] == item['key']);
+                      tempSelectedItems
+                          .value = List.from(tempSelectedItems.value)
+                        ..removeWhere((element) => element.first == item.first);
                     }
                   },
                 );

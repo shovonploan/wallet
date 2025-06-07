@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wallet/constants/theme.dart';
 import 'package:wallet/models/record.dart';
 
+// TODO: Complete the RecordTile
 class RecordTile extends StatelessWidget {
   Record record;
   RecordTile({super.key, required this.record});
