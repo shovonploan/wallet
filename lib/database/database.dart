@@ -12,17 +12,13 @@ import 'package:sqflite/sqflite.dart';
 import 'package:wallet/constants/common.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/authenticator.dart';
-import 'package:wallet/models/jobs.dart';
 import 'package:wallet/models/kind.dart';
 import 'package:wallet/models/product.dart';
 import 'package:wallet/models/record.dart';
 
-// TODO: might need to remove history to save space;
-
 final Map<String, DBGrain> _allTables = {
   "Authenticate": Authenticate.defaultCtor(),
   "Account": Account.defaultCtor(),
-  "Job": Job.defaultCtor(),
   "Kind": Kind.defaultCtor(),
   "Product": Product.defaultCtor(),
   "Record": Record.defaultCtor(),
@@ -246,8 +242,6 @@ class DatabaseHelper {
           .rawDelete('DELETE FROM $tableName WHERE ${tableName}_id = ?', [id]);
       await txn.rawDelete(
           'DELETE FROM ${tableName}_cIdx WHERE ${tableName}_id = ?', [id]);
-      await txn.rawDelete(
-          'DELETE FROM ${tableName}_history WHERE ${tableName}_id = ?', [id]);
 
       List<Map<String, dynamic>> blobEntries = await txn.rawQuery(
           'SELECT blobId FROM ${tableName}_blob_primary WHERE ${tableName}_id = ?',
@@ -529,8 +523,6 @@ abstract class DBGrain {
     sql +=
         'CREATE TABLE IF NOT EXISTS ${tableName}_cIdx ($primaryKey TEXT, key TEXT, value TEXT);\n';
     sql +=
-        'CREATE TABLE IF NOT EXISTS ${tableName}_history ($primaryKey TEXT, object TEXT, createdOn DATETIME);\n';
-    sql +=
         'CREATE TABLE IF NOT EXISTS ${tableName}_blob_primary ($primaryKey TEXT, blobId TEXT, key TEXT, createdOn DATETIME);\n';
     return sql + customInsert();
   }
@@ -560,12 +552,6 @@ abstract class DBGrain {
     }
 
     return sql;
-  }
-
-  String DBInsertCIdx(String key, String value) {
-    // TODO : Remove me
-    return 'INSERT INTO ${tableName}_cIdx ($primaryKey, key, value) '
-        'VALUES (\'$id\', \'$key\', \'$value\');\n';
   }
 
   String insertImageAsBlob(String blobId, Uint8List data, String key) {
@@ -601,9 +587,6 @@ abstract class DBGrain {
     final object = _getEncryptedObject(newJsonData);
 
     String sql = '''
-      INSERT INTO ${tableName}_history ($primaryKey, object, createdOn)
-      SELECT $primaryKey, object, lastUpdatedOn FROM $tableName WHERE $primaryKey = '$id';
-
       UPDATE $tableName SET object = '$object', lastUpdatedOn = CURRENT_TIMESTAMP WHERE $primaryKey = '$id';
   ''';
 
