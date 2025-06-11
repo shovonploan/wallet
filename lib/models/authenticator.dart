@@ -228,8 +228,7 @@ class OnAuthenticateError extends AuthenticateEvent {
 //---------------------bloc----------------
 class AuthenticateBloc extends Bloc<AuthenticateEvent, AuthenticateState> {
   final DatabaseHelper _dbHelper;
-  AuthenticateBloc(this._dbHelper)
-      : super(AuthenticateInitial()) {
+  AuthenticateBloc(this._dbHelper) : super(AuthenticateInitial()) {
     on<LoadAuthenticate>(_onLoadAuthenticate);
     on<CreateAuthenticate>(_onCreateAuthenticate);
     on<OnCreatingAuthenticate>(_onCreatingAuthenticate);
@@ -250,11 +249,13 @@ class AuthenticateBloc extends Bloc<AuthenticateEvent, AuthenticateState> {
       final dbData = await _dbHelper.getAllGrain(_tableName);
       if (dbData.isNotEmpty) {
         final authenticate = Authenticate.fromJson(dbData.first);
-        final isLogged = (DateTime.now().difference(DateTime.parse(authenticate.lastLoggedIn)) < const Duration(days: 5));
+        final isLogged = (DateTime.now()
+                .difference(DateTime.parse(authenticate.lastLoggedIn)) <
+            const Duration(days: 5));
 
         if (isLogged) {
           emit(Authenticated(authenticate));
-        } else{
+        } else {
           add(LogoutAuthenticate());
         }
       } else {
@@ -344,8 +345,7 @@ class AuthenticateBloc extends Bloc<AuthenticateEvent, AuthenticateState> {
         await _dbHelper
             .rawExecute(updatedAuthenticate.update(updatedAuthenticate));
         emit(const AuthenticateLoaded('Session Timeout'));
-      }
-      else {
+      } else {
         emit(const AuthenticateLoaded(''));
       }
     } catch (e) {

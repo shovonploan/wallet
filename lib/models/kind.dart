@@ -76,7 +76,8 @@ class Kind extends DBGrain {
   final IconData icon;
   final Color color;
 
-  Kind.Ctor(String name,KindNature nature ,String parentId, int level, IconData icon, Color color)
+  Kind.Ctor(String name, KindNature nature, String parentId, int level,
+      IconData icon, Color color)
       : this(
           id: generateNewUuid(),
           name: name,
@@ -164,7 +165,8 @@ class Kind extends DBGrain {
       Kind._fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() => 'Kind(id: $id, name: $name, nature: $nature, parentId: $parentId)';
+  String toString() =>
+      'Kind(id: $id, name: $name, nature: $nature, parentId: $parentId)';
 
   @override
   bool operator ==(covariant Kind other) {
@@ -698,7 +700,6 @@ class Kind extends DBGrain {
     Kind investments = Kind(
         id: generateNewUuid(),
         name: 'Investments',
-
         nature: Need(),
         parentId: '',
         level: 0,
@@ -715,7 +716,6 @@ class Kind extends DBGrain {
     Kind investments2 = Kind(
         id: generateNewUuid(),
         name: 'Financial investments',
-
         nature: Need(),
         parentId: investments.id,
         level: 1,

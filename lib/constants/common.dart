@@ -108,16 +108,16 @@ void pushPopIn(BuildContext context, Widget page) {
   );
 }
 
-List<RecordIndexKey> defaultRecordQuarry(DateRangeBloc dateRangeBloc, AccountBloc accountBloc){
+List<RecordIndexKey> defaultRecordQuarry(
+    DateRangeBloc dateRangeBloc, AccountBloc accountBloc) {
   final now = DateTime.now();
   final range = dateRangeBloc.state.range.duration;
   final target = now.subtract(range);
   final dateStr = DateTime(target.year, target.month, target.day).toString();
 
   final accountState = accountBloc.state;
-  final selectedAccounts = (accountState is AccountLoaded)
-      ? accountState.selectedAccounts
-      : [];
+  final selectedAccounts =
+      (accountState is AccountLoaded) ? accountState.selectedAccounts : [];
 
   return [
     for (final account in selectedAccounts)

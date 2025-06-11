@@ -90,8 +90,38 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     context.read<RecordBloc>().add(
           AddRecord(
             200,
+            '',
             Transfer(accounts.first.id, accounts.last.id),
+            0,
+            [],
             null,
+            DateTime.now().toString(),
+          ),
+        );
+
+    context.read<RecordBloc>().add(
+          AddRecord(
+            200,
+            '',
+            Income(
+                accounts.first.id,
+                kinds
+                    .where((element) => element.name == "Wage, invoices")
+                    .first
+                    .id),
+            0,
+            [],
+            null,
+            DateTime.now().toString(),
+          ),
+        );
+
+    context.read<RecordBloc>().add(
+          AddRecord(
+            100,
+            '',
+            Expense(accounts.first.id,
+                kinds.where((element) => element.name == "Rent").first.id),
             0,
             [],
             null,

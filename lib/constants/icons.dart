@@ -1280,9 +1280,11 @@ final Map<String, IconData> iconMap = {
   'signLanguage': FontAwesomeIcons.signLanguage,
   'signing': FontAwesomeIcons.signing,
   'handsAslInterpreting': FontAwesomeIcons.handsAslInterpreting,
-  'americanSignLanguageInterpreting': FontAwesomeIcons.americanSignLanguageInterpreting,
+  'americanSignLanguageInterpreting':
+      FontAwesomeIcons.americanSignLanguageInterpreting,
   'aslInterpreting': FontAwesomeIcons.aslInterpreting,
-  'handsAmericanSignLanguageInterpreting': FontAwesomeIcons.handsAmericanSignLanguageInterpreting,
+  'handsAmericanSignLanguageInterpreting':
+      FontAwesomeIcons.handsAmericanSignLanguageInterpreting,
   'handsBound': FontAwesomeIcons.handsBound,
   'handsBubbles': FontAwesomeIcons.handsBubbles,
   'handsWash': FontAwesomeIcons.handsWash,
@@ -1395,13 +1397,15 @@ final Map<String, IconData> iconMap = {
   'houseFire': FontAwesomeIcons.houseFire,
   'houseFlag': FontAwesomeIcons.houseFlag,
   'houseFloodWater': FontAwesomeIcons.houseFloodWater,
-  'houseFloodWaterCircleArrowRight': FontAwesomeIcons.houseFloodWaterCircleArrowRight,
+  'houseFloodWaterCircleArrowRight':
+      FontAwesomeIcons.houseFloodWaterCircleArrowRight,
   'houseLaptop': FontAwesomeIcons.houseLaptop,
   'laptopHouse': FontAwesomeIcons.laptopHouse,
   'houseLock': FontAwesomeIcons.houseLock,
   'houseMedical': FontAwesomeIcons.houseMedical,
   'houseMedicalCircleCheck': FontAwesomeIcons.houseMedicalCircleCheck,
-  'houseMedicalCircleExclamation': FontAwesomeIcons.houseMedicalCircleExclamation,
+  'houseMedicalCircleExclamation':
+      FontAwesomeIcons.houseMedicalCircleExclamation,
   'houseMedicalCircleXmark': FontAwesomeIcons.houseMedicalCircleXmark,
   'houseMedicalFlag': FontAwesomeIcons.houseMedicalFlag,
   'houseSignal': FontAwesomeIcons.houseSignal,
@@ -1848,7 +1852,8 @@ final Map<String, IconData> iconMap = {
   'walking': FontAwesomeIcons.walking,
   'personWalkingArrowLoopLeft': FontAwesomeIcons.personWalkingArrowLoopLeft,
   'personWalkingArrowRight': FontAwesomeIcons.personWalkingArrowRight,
-  'personWalkingDashedLineArrowRight': FontAwesomeIcons.personWalkingDashedLineArrowRight,
+  'personWalkingDashedLineArrowRight':
+      FontAwesomeIcons.personWalkingDashedLineArrowRight,
   'personWalkingLuggage': FontAwesomeIcons.personWalkingLuggage,
   'personWalkingWithCane': FontAwesomeIcons.personWalkingWithCane,
   'blind': FontAwesomeIcons.blind,

@@ -127,7 +127,10 @@ void main() async {
                     ),
                 ),
                 BlocProvider(
-                  create: (context) => SettingsBloc(context, databaseHelper,),
+                  create: (context) => SettingsBloc(
+                    context,
+                    databaseHelper,
+                  ),
                 ),
               ],
               child: MaterialApp(

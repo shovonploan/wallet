@@ -345,8 +345,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
       if ((currentState is AccountLoaded)) {
         if (currentState.selectedAccounts.isEmpty) {
           emit(AccountInitial());
-          emit(AccountLoaded(
-              accounts, currentState.selectedAccounts));
+          emit(AccountLoaded(accounts, currentState.selectedAccounts));
         } else {
           final selected = currentState.selectedAccounts
               .where((id) =>

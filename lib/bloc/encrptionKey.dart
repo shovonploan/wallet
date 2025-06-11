@@ -97,4 +97,3 @@ class EncryptionKeyBloc extends Bloc<EncryptionKeyEvent, EncryptionKeyState> {
     }
   }
 }
-

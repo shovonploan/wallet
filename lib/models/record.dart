@@ -17,9 +17,9 @@ abstract class RecordType {
   factory RecordType.fromMap(Map<String, dynamic> map) {
     switch (map['type']) {
       case 'Income':
-        return Income(map['accountId']);
+        return Income(map['accountId'], map['kindId']);
       case 'Expense':
-        return Expense(map['accountId']);
+        return Expense(map['accountId'], map['kindId']);
       case 'Transfer':
         return Transfer(
           map['fromAccountId'],
@@ -33,30 +33,34 @@ abstract class RecordType {
 
 class Income extends RecordType {
   final String accountId;
-  const Income(this.accountId) : super();
+  final String kindId;
+  const Income(this.accountId, this.kindId) : super();
 
   @override
   Map<String, dynamic> toJson() => {
         'type': 'Income',
         'accountId': accountId,
+        'kindId': kindId,
       };
 
   @override
-  String toString() => 'Income ($accountId)';
+  String toString() => 'Income';
 }
 
 class Expense extends RecordType {
   final String accountId;
-  const Expense(this.accountId) : super();
+  final String kindId;
+  const Expense(this.accountId, this.kindId) : super();
 
   @override
   Map<String, dynamic> toJson() => {
         'type': 'Expense',
         'accountId': accountId,
+        'kindId': kindId,
       };
 
   @override
-  String toString() => 'Expense ($accountId)';
+  String toString() => 'Expense';
 }
 
 class Transfer extends RecordType {
@@ -72,7 +76,7 @@ class Transfer extends RecordType {
       };
 
   @override
-  String toString() => 'Transfer ($fromAccountId -> $toAccountId)';
+  String toString() => 'Transfer';
 }
 
 enum RecordIndexKeyOperator {
@@ -113,20 +117,20 @@ class Record extends DBGrain {
   @override
   final String id;
   final double amount;
+  final String description;
   final RecordType type;
-  final Kind? kind;
   final double stockValue;
   final List<String> productIds;
   final String imageId;
   final String date;
 
-  Record.Ctor(double amount, RecordType type, Kind? kind,
+  Record.Ctor(double amount, String description, RecordType type,
       List<String> productIds, String imageId, String date)
       : this(
             id: generateNewUuid(),
             amount: amount,
+            description: description,
             type: type,
-            kind: kind,
             stockValue: 0.0,
             productIds: productIds,
             imageId: imageId,
@@ -136,8 +140,8 @@ class Record extends DBGrain {
       : this(
             id: '',
             amount: 0.0,
-            type: const Income(''),
-            kind: null,
+            description: '',
+            type: const Income('', ''),
             stockValue: 0.0,
             productIds: [],
             imageId: '',
@@ -145,8 +149,8 @@ class Record extends DBGrain {
   Record(
       {required this.id,
       required this.amount,
+      required this.description,
       required this.type,
-      required this.kind,
       required this.stockValue,
       required this.productIds,
       required this.imageId,
@@ -155,8 +159,8 @@ class Record extends DBGrain {
   Record copyWith(
       {String? id,
       double? amount,
+      String? description,
       RecordType? type,
-      Kind? kind,
       double? stockValue,
       List<String>? productIds,
       String? imageId,
@@ -164,8 +168,8 @@ class Record extends DBGrain {
     return Record(
         id: id ?? this.id,
         amount: amount ?? this.amount,
+        description: description ?? this.description,
         type: type ?? this.type,
-        kind: kind ?? this.kind,
         stockValue: this.stockValue,
         productIds: productIds ?? this.productIds,
         imageId: imageId ?? this.imageId,
@@ -176,8 +180,8 @@ class Record extends DBGrain {
     return <String, dynamic>{
       'id': id,
       'amount': amount,
+      'description': description,
       'type': type.toJson(),
-      'kind': kind?.toJson(),
       'stockValue': stockValue,
       'productIds': productIds,
       'imageId': imageId,
@@ -192,8 +196,8 @@ class Record extends DBGrain {
       return Record(
           id: map['id'] as String,
           amount: map['amount'] as double,
+          description: map['description'] as String,
           type: RecordType.fromMap(map['type']),
-          kind: map['kind'] != null ? Kind.fromJson(map['kind']) : null,
           stockValue: map['stockValue'] as double,
           productIds: List<String>.from(map['productIds']),
           imageId: map['imageId'] as String,
@@ -209,15 +213,15 @@ class Record extends DBGrain {
 
   @override
   String toString() =>
-      'Record(id: $id, amount: $amount, type: $type, kind: $kind,stockValue: $stockValue , productIds: $productIds, imageId: $imageId, date: $date)';
+      'Record(id: $id, amount: $amount, type: $type, stockValue: $stockValue , productIds: $productIds, imageId: $imageId, date: $date)';
 
   @override
   bool operator ==(covariant Record other) {
     if (identical(this, other)) return true;
     return other.id == id &&
         other.amount == amount &&
+        other.description == description &&
         other.type == type &&
-        other.kind == kind &&
         other.stockValue == stockValue &&
         other.productIds == productIds &&
         other.imageId == imageId &&
@@ -228,8 +232,8 @@ class Record extends DBGrain {
   int get hashCode =>
       id.hashCode ^
       amount.hashCode ^
+      description.hashCode ^
       type.hashCode ^
-      kind.hashCode ^
       stockValue.hashCode ^
       productIds.hashCode ^
       imageId.hashCode ^
@@ -238,11 +242,31 @@ class Record extends DBGrain {
   @override
   final String tableName = _tableName;
   @override
-  Map<String, String> get indexs => {
-        'type': type.toString(),
-        'kindId': kind?.id ?? '',
-        'date': date,
-      };
+  Map<String, String> get indexs {
+    final currentType = type;
+    String accountId = '';
+    String toAccountId = '';
+    String kindId = '';
+
+    if (currentType is Income) {
+      accountId = currentType.accountId;
+      kindId = currentType.kindId;
+    } else if (currentType is Expense) {
+      accountId = currentType.accountId;
+      kindId = currentType.kindId;
+    } else if (currentType is Transfer) {
+      accountId = currentType.fromAccountId;
+      toAccountId = currentType.toAccountId;
+    }
+
+    return {
+      'type': type.toString(),
+      'accountId': accountId,
+      'toAccountId': toAccountId,
+      'kindId': kindId,
+      'date': date,
+    };
+  }
 
   @override
   String insert() {
@@ -307,36 +331,43 @@ class LoadRecords extends RecordEvent {
 
 class AddRecord extends RecordEvent {
   final double amount;
+  final String description;
   final RecordType type;
-  final Kind? kind;
   final double stockValue;
   final List<String> productIds;
   final Uint8List? image;
   final String date;
-  const AddRecord(this.amount, this.type, this.kind, this.stockValue,
+  const AddRecord(this.amount, this.description, this.type, this.stockValue,
       this.productIds, this.image, this.date);
   @override
   List<Object?> get props =>
-      [amount, type, kind, stockValue, productIds, image, date];
+      [amount, description, type, stockValue, productIds, image, date];
 }
 
 class UpdateRecord extends RecordEvent {
   final Record record;
   final double newAmount;
+  final String newDescription;
   final RecordType newType;
-  final Kind? newKind;
   final double newStockValue;
   final List<String> newProductIds;
   final Uint8List? newImage;
   final String newDate;
-  const UpdateRecord(this.record, this.newAmount, this.newType, this.newKind,
-      this.newStockValue, this.newProductIds, this.newImage, this.newDate);
+  const UpdateRecord(
+      this.record,
+      this.newAmount,
+      this.newDescription,
+      this.newType,
+      this.newStockValue,
+      this.newProductIds,
+      this.newImage,
+      this.newDate);
   @override
   List<Object?> get props => [
         record,
         newAmount,
+        newDescription,
         newType,
-        newKind,
         newStockValue,
         newProductIds,
         newImage,
@@ -375,7 +406,7 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
     try {
       emit(RecordLoading());
       String imageId = generateNewUuid();
-      final record = Record.Ctor(event.amount, event.type, event.kind,
+      final record = Record.Ctor(event.amount, event.description, event.type,
           event.productIds, (event.image == null) ? '' : imageId, event.date);
 
       if (event.image != null) {
@@ -443,13 +474,18 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
 
         if (keyValue is AccountId) {
           condition = {
-            'comparison': 'LIKE',
-            'value': "%${keyValue.value}%",
+            'key': 'accountId',
+            'value': keyValue.value,
           };
+          conditions.add({
+            'key': 'toAccountId',
+            'value': keyValue.value,
+            'operator': 'OR'
+          });
         } else if (keyValue is RecordIndexType) {
           condition = {
-            'comparison': 'LIKE',
-            'value': "%${keyValue.value}%",
+            'key': 'type',
+            'value': keyValue.value,
           };
         } else if (keyValue is KindKey) {
           condition = {
@@ -493,8 +529,8 @@ class RecordBloc extends Bloc<RecordEvent, RecordState> {
       String imageId = generateNewUuid();
       final record = event.record.copyWith(
           amount: event.newAmount,
+          description: event.newDescription,
           type: event.newType,
-          kind: event.newKind,
           stockValue: event.newStockValue,
           productIds: event.newProductIds,
           imageId: (event.newImage == null) ? '' : imageId);

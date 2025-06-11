@@ -91,7 +91,7 @@ class _AccountsPageState extends State<AccountsPage> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             CreateAccount(
-                                                              account: item,
+                                                          account: item,
                                                         ),
                                                       ),
                                                     );

@@ -106,6 +106,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       return const CircularProgressIndicator();
                     case RecordListLoaded():
                       return Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Transactions",
+                                style: Theme.of(context).textTheme.titleLarge,
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      );
+                    default:
+                      return Container();
+                  }
+                },
+              ),
+              BlocBuilder<RecordBloc, RecordState>(
+                builder: (context, state) {
+                  switch (state) {
+                    case RecordLoading():
+                      return const CircularProgressIndicator();
+                    case RecordListLoaded():
+                      return Column(
                         children: state.records
                             .map(
                               (record) => RecordTile(
@@ -132,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () {
                         pushPopIn(
                           context,
-                          const Createtransaction(),
+                          const CreateTransaction(),
                         );
                       },
                       backgroundColor: CustomColor.primary.shade900,

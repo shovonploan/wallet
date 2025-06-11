@@ -104,7 +104,7 @@ abstract class ProductSize {
         return const One();
       case 'Many':
         return Many(map['size']);
-        default:
+      default:
         throw Exception('Unknown product size: ${map['size']}');
     }
   }
@@ -149,12 +149,21 @@ class Product extends DBGrain {
   final ProductSize size;
   final String recordId;
   final double amount;
+  final int warranty;
   final String imageId;
   final String createdAt;
   final String updatedAt;
 
-  Product.Ctor(String name, ProductCondition state, ProductSize size,String recordId,
-      double amount, String imageId, String createdAt, String updatedAt)
+  Product.Ctor(
+      String name,
+      ProductCondition state,
+      ProductSize size,
+      String recordId,
+      double amount,
+      int warranty,
+      String imageId,
+      String createdAt,
+      String updatedAt)
       : this(
             id: generateNewUuid(),
             name: name,
@@ -162,6 +171,7 @@ class Product extends DBGrain {
             size: size,
             recordId: recordId,
             amount: amount,
+            warranty: warranty,
             imageId: imageId,
             createdAt: createdAt,
             updatedAt: updatedAt);
@@ -173,6 +183,7 @@ class Product extends DBGrain {
             size: const One(),
             recordId: '',
             amount: 0.0,
+            warranty: 0,
             imageId: '',
             createdAt: '',
             updatedAt: '');
@@ -183,6 +194,7 @@ class Product extends DBGrain {
     required this.size,
     required this.recordId,
     required this.amount,
+    required this.warranty,
     required this.imageId,
     required this.createdAt,
     required this.updatedAt,
@@ -195,6 +207,7 @@ class Product extends DBGrain {
     ProductSize? size,
     String? recordId,
     double? amount,
+    int? warranty,
     String? imageId,
     String? createdAt,
     String? updatedAt,
@@ -206,6 +219,7 @@ class Product extends DBGrain {
       size: size ?? this.size,
       recordId: recordId ?? this.recordId,
       amount: amount ?? this.amount,
+      warranty: warranty ?? this.warranty,
       imageId: imageId ?? this.imageId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -220,6 +234,7 @@ class Product extends DBGrain {
       'size': size.toJson(),
       'recordId': recordId,
       'amount': amount,
+      'warranty': warranty,
       'imageId': imageId,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
@@ -237,6 +252,7 @@ class Product extends DBGrain {
         size: ProductSize.fromMap(map['size']),
         recordId: map['recordId'] as String,
         amount: map['amount'] as double,
+        warranty: map['warranty'] as int,
         imageId: map['imageId'] as String,
         createdAt: map['createdAt'] as String,
         updatedAt: map['updatedAt'] as String,
@@ -253,7 +269,7 @@ class Product extends DBGrain {
 
   @override
   String toString() =>
-      'Product(id: $id, name: $name, state: $state, size: $size, recordId: $recordId, amount: $amount, imageId: $imageId, createdAt: $createdAt, updatedAt: $updatedAt)';
+      'Product(id: $id, name: $name, state: $state, size: $size, recordId: $recordId, amount: $amount, warranty: $warranty, imageId: $imageId, createdAt: $createdAt, updatedAt: $updatedAt)';
 
   @override
   bool operator ==(covariant Object other) {
@@ -265,6 +281,7 @@ class Product extends DBGrain {
         other.size == size &&
         other.recordId == recordId &&
         other.amount == amount &&
+        other.warranty == warranty &&
         other.imageId == imageId &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
@@ -278,6 +295,7 @@ class Product extends DBGrain {
       size.hashCode ^
       recordId.hashCode ^
       amount.hashCode ^
+      warranty.hashCode ^
       createdAt.hashCode ^
       updatedAt.hashCode;
 
@@ -361,11 +379,13 @@ class AddProduct extends ProductEvent {
   final ProductSize size;
   final String recordId;
   final double amount;
+  final int warranty;
   final Uint8List? image;
-  const AddProduct(
-      this.name, this.state, this.size, this.recordId, this.amount, this.image);
+  const AddProduct(this.name, this.state, this.size, this.recordId, this.amount,
+      this.warranty, this.image);
   @override
-  List<Object?> get props => [name, state, size,recordId, amount, image];
+  List<Object?> get props =>
+      [name, state, size, recordId, amount, warranty, image];
 }
 
 class UpdateProduct extends ProductEvent {
@@ -375,12 +395,13 @@ class UpdateProduct extends ProductEvent {
   final ProductSize newSize;
   final String recordId;
   final double amount;
+  final int warranty;
   final Uint8List? image;
-  const UpdateProduct(this.product, this.newName, this.newState, this.newSize, this.recordId,
-      this.amount, this.image);
+  const UpdateProduct(this.product, this.newName, this.newState, this.newSize,
+      this.recordId, this.amount, this.warranty, this.image);
   @override
   List<Object?> get props =>
-      [product, newName, newState, newSize, recordId, amount, image];
+      [product, newName, newState, newSize, recordId, amount, warranty, image];
 }
 
 class DeleteProduct extends ProductEvent {
@@ -444,7 +465,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       };
 
       final unavailableProducts = products
-          .where((product) => product.state is! Healthy || product.state is! WillExpire)
+          .where((product) =>
+              product.state is! Healthy || product.state is! WillExpire)
           .toList();
 
       final deletedProducts = products
@@ -511,6 +533,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           event.size,
           event.recordId,
           event.amount,
+          event.warranty,
           (event.image == null) ? '' : imageId,
           DateTime.now().toString(),
           DateTime.now().toString());
@@ -545,6 +568,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         size: event.newSize,
         recordId: event.recordId,
         amount: event.amount,
+        warranty: event.warranty,
         imageId: (event.image == null) ? '' : imageId,
         updatedAt: DateTime.now().toString(),
       );
@@ -588,8 +612,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         recordBloc?.add(UpdateRecord(
             record,
             record.amount,
+            record.description,
             record.type,
-            record.kind,
             record.stockValue + event.product.amount,
             record.productIds,
             recordImage,
