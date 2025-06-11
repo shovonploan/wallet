@@ -43,8 +43,8 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
       },
     );
 
-    bool validate() {
-      String? message = widget.validate?.call(selectedItems.value);
+    bool validate(List<StringListPair> items) {
+      String? message = widget.validate?.call(items);
       if (message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -58,7 +58,7 @@ class _DropDownSelectMultipleState extends State<DropDownSelectMultiple> {
     }
 
     if (result != null) {
-      if (validate()) {
+      if (validate(result)) {
         selectedItems.value = result;
         widget.onSelected(selectedItems.value);
       }
