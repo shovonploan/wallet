@@ -6,6 +6,7 @@ import 'package:wallet/components/filepicker.dart';
 import 'package:wallet/constants/theme.dart';
 import 'package:wallet/models/account.dart';
 import 'package:wallet/models/record.dart';
+import 'package:wallet/models/kind.dart';
 import '../Product/CreateProduct.dart';
 
 class CreateTransaction extends StatefulWidget {
@@ -26,6 +27,7 @@ class _CreateTransactionState extends State<CreateTransaction> {
   DateTime _selectedDate = DateTime.now();
   Uint8List? _receipt;
   final List<Map<String, dynamic>> _products = [];
+  Kind? _selectedKind;
 
   @override
   void initState() {
@@ -40,6 +42,12 @@ class _CreateTransactionState extends State<CreateTransaction> {
     } else {
       account = Account.defaultCtor();
       toAccount = Account.defaultCtor();
+    }
+    final kindState = context.read<KindBloc>().state;
+    if (kindState is KindLoaded && kindState.kinds.isNotEmpty) {
+      _selectedKind = kindState.kinds.first;
+    } else {
+      _selectedKind = Kind.defaultCtor();
     }
   }
 
@@ -151,7 +159,7 @@ class _CreateTransactionState extends State<CreateTransaction> {
                           else
                             accountInfo(
                                 label: 'Category',
-                                value: account.name,
+                                value: _selectedKind?.name ?? '',
                                 onTap: () {}),
                         ],
                       ),
@@ -183,6 +191,72 @@ class _CreateTransactionState extends State<CreateTransaction> {
                       controller: _descController,
                       decoration: const InputDecoration(labelText: 'Description'),
                     ),
+                    const SizedBox(height: 10),
+                    BlocBuilder<AccountBloc, AccountState>(
+                      builder: (context, aState) {
+                        final accounts = aState is AccountLoaded ? aState.allAccounts : <Account>[];
+                        return DropdownButtonFormField<String>(
+                          value: account.id,
+                          decoration: const InputDecoration(labelText: 'Account'),
+                          items: accounts
+                              .map((e) => DropdownMenuItem(value: e.id, child: Text(e.name)))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                account = accounts.firstWhere((a) => a.id == val);
+                              });
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    if (selectedRecordType == 'Transfer')
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: BlocBuilder<AccountBloc, AccountState>(
+                          builder: (context, aState) {
+                            final accounts = aState is AccountLoaded ? aState.allAccounts : <Account>[];
+                            return DropdownButtonFormField<String>(
+                              value: toAccount.id,
+                              decoration: const InputDecoration(labelText: 'To Account'),
+                              items: accounts
+                                  .map((e) => DropdownMenuItem(value: e.id, child: Text(e.name)))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    toAccount = accounts.firstWhere((a) => a.id == val);
+                                  });
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: BlocBuilder<KindBloc, KindState>(
+                          builder: (context, kState) {
+                            final kinds = kState is KindLoaded ? kState.kinds : <Kind>[];
+                            return DropdownButtonFormField<String>(
+                              value: _selectedKind?.id,
+                              decoration: const InputDecoration(labelText: 'Category'),
+                              items: kinds
+                                  .map((e) => DropdownMenuItem(value: e.id, child: Text(e.name)))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedKind = kinds.firstWhere((k) => k.id == val);
+                                  });
+                                }
+                              },
+                            );
+                          },
+                        ),
+                      ),
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: () async {
@@ -355,9 +429,9 @@ class _CreateTransactionState extends State<CreateTransaction> {
       }
       RecordType type;
       if (selectedRecordType == 'Income') {
-        type = Income(account.id, '');
+        type = Income(account.id, _selectedKind?.id ?? '');
       } else if (selectedRecordType == 'Expense') {
-        type = Expense(account.id, '');
+        type = Expense(account.id, _selectedKind?.id ?? '');
       } else {
         type = Transfer(account.id, toAccount.id);
       }
