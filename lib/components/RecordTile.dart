@@ -104,7 +104,7 @@ class _RecordTileState extends State<RecordTile> {
                             ? 'Transfer'
                             : kind?.name ?? '',
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -120,7 +120,7 @@ class _RecordTileState extends State<RecordTile> {
                       ? Text(
                           "${fromAccount!.name} to ${toAccount!.name}",
                           style: const TextStyle(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
@@ -130,8 +130,8 @@ class _RecordTileState extends State<RecordTile> {
               ),
               Text(
                 "$currency ${widget.record.amount}",
-                style: TextStyle(
-                  color: Colors.black,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
