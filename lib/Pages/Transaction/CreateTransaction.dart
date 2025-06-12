@@ -1,7 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wallet/components/filepicker.dart';
 import 'package:wallet/constants/theme.dart';
 import 'package:wallet/models/account.dart';
+import 'package:wallet/models/record.dart';
+import '../Product/CreateProduct.dart';
 
 class CreateTransaction extends StatefulWidget {
   const CreateTransaction({super.key});
@@ -15,7 +20,12 @@ class _CreateTransactionState extends State<CreateTransaction> {
   late Account account;
   late Account toAccount;
   double amount = 0.0;
+  String _amountStr = '0';
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _descController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
+  Uint8List? _receipt;
+  final List<Map<String, dynamic>> _products = [];
 
   @override
   void initState() {
@@ -31,6 +41,12 @@ class _CreateTransactionState extends State<CreateTransaction> {
       account = Account.defaultCtor();
       toAccount = Account.defaultCtor();
     }
+  }
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    super.dispose();
   }
 
   @override
@@ -153,12 +169,121 @@ class _CreateTransactionState extends State<CreateTransaction> {
               ],
             ),
           ),
-
-          // Right panel placeholder
+          // Right panel with form
           SizedBox(
             width: halfWidth,
-            child: Container(),
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _descController,
+                      decoration: const InputDecoration(labelText: 'Description'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (date != null) {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(_selectedDate),
+                          );
+                          if (time != null) {
+                            setState(() {
+                              _selectedDate = DateTime(
+                                date.year,
+                                date.month,
+                                date.day,
+                                time.hour,
+                                time.minute,
+                              );
+                            });
+                          }
+                        }
+                      },
+                      child: Text(_selectedDate.toString().split('.').first),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            final img = await pickImageSafely();
+                            if (img != null) {
+                              setState(() {
+                                _receipt = img;
+                              });
+                            }
+                          },
+                          child: const Text('Add Receipt'),
+                        ),
+                        const SizedBox(width: 10),
+                        if (_receipt != null)
+                          Expanded(
+                            child: SizedBox(
+                              height: 80,
+                              child: Image.memory(_receipt!, fit: BoxFit.cover),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CreateProduct()),
+                        );
+                        if (result != null && mounted) {
+                          setState(() {
+                            _products.add(Map<String, dynamic>.from(result));
+                          });
+                        }
+                      },
+                      child: const Text('Add Product'),
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          final p = _products[index];
+                          return ListTile(
+                            title: Text(p['name'] as String),
+                            trailing: Text((p['amount'] as double).toStringAsFixed(2)),
+                            subtitle: Text('Warranty: ${p['warranty']}m'),
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        'Total: ' +
+                            _products.fold<double>(0, (s, e) => s + (e['amount'] as double)).toStringAsFixed(2),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: _submit,
+                      child: const Text('Create Transaction'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
+
+          
         ],
       ),
     );
@@ -178,7 +303,7 @@ class _CreateTransactionState extends State<CreateTransaction> {
             children: columnKeys
                 .map(
                   (key) => Expanded(
-                    child: _calculatorKey(key, () {}),
+                    child: _calculatorKey(key, () => _onCalculatorPress(key)),
                   ),
                 )
                 .toList(),
@@ -190,7 +315,7 @@ class _CreateTransactionState extends State<CreateTransaction> {
           children: ['+', '-', '*', '/','=']
               .map(
                 (op) => Expanded(
-                  child: _calculatorKey(op, () {}),
+                  child: _calculatorKey(op, () => _onCalculatorPress(op)),
                 ),
               )
               .toList(),
@@ -216,6 +341,62 @@ class _CreateTransactionState extends State<CreateTransaction> {
         ),
       ),
     );
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      final total =
+          _products.fold<double>(0, (s, e) => s + (e['amount'] as double));
+      if ((total - amount).abs() > 0.01) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Product total doesn't match amount")),
+        );
+        return;
+      }
+      RecordType type;
+      if (selectedRecordType == 'Income') {
+        type = Income(account.id, '');
+      } else if (selectedRecordType == 'Expense') {
+        type = Expense(account.id, '');
+      } else {
+        type = Transfer(account.id, toAccount.id);
+      }
+      context.read<RecordBloc>().add(
+            AddRecord(
+              amount,
+              _descController.text,
+              type,
+              0.0,
+              const [],
+              _receipt,
+              _selectedDate.toString(),
+            ),
+          );
+      Navigator.pop(context);
+    }
+  }
+
+  void _onCalculatorPress(String label) {
+    setState(() {
+      if (label == '⌫') {
+        if (_amountStr.isNotEmpty) {
+          _amountStr = _amountStr.substring(0, _amountStr.length - 1);
+          if (_amountStr.isEmpty) _amountStr = '0';
+        }
+      } else if (label == '.') {
+        if (!_amountStr.contains('.')) {
+          _amountStr += '.';
+        }
+      } else if (RegExp(r'^[0-9]$').hasMatch(label)) {
+        if (_amountStr == '0') {
+          _amountStr = label;
+        } else {
+          _amountStr += label;
+        }
+      } else if (label == '=') {
+        amount = double.tryParse(_amountStr) ?? 0.0;
+      }
+    });
   }
 
   TextStyle amountStyle() {
