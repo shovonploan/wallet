@@ -46,114 +46,108 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const MainDrawer(),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Center(
-                child: TotalAmountCard(),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: Row(
-                  children: [
-                    BlocBuilder<AccountBloc, AccountState>(
-                      builder: (context, state) {
-                        switch (state) {
-                          case AccountLoaded():
-                            if (state.allAccounts.isEmpty) {
-                              return Container();
-                            } else {
-                              return Expanded(
-                                child: dropDown(
-                                  state,
-                                  context.read<AccountBloc>(),
-                                ),
-                              );
-                            }
-                          case AccountLoading():
-                            return const CircularProgressIndicator();
-                          default:
-                            return Container();
-                        }
-                      },
-                    ),
-                    BlocBuilder<AccountBloc, AccountState>(
-                      builder: (context, state) {
-                        if (state is AccountLoaded) {
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Center(
+              child: TotalAmountCard(),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Row(
+                children: [
+                  BlocBuilder<AccountBloc, AccountState>(
+                    builder: (context, state) {
+                      switch (state) {
+                        case AccountLoaded():
                           if (state.allAccounts.isEmpty) {
+                            return Container();
+                          } else {
                             return Expanded(
-                              child: addAccount(context),
+                              child: dropDown(
+                                state,
+                                context.read<AccountBloc>(),
+                              ),
                             );
                           }
-                          return addAccount(context);
-                        } else {
+                        case AccountLoading():
+                          return const CircularProgressIndicator();
+                        default:
                           return Container();
+                      }
+                    },
+                  ),
+                  BlocBuilder<AccountBloc, AccountState>(
+                    builder: (context, state) {
+                      if (state is AccountLoaded) {
+                        if (state.allAccounts.isEmpty) {
+                          return Expanded(
+                            child: addAccount(context),
+                          );
                         }
-                      },
-                    )
-                  ],
-                ),
+                        return addAccount(context);
+                      } else {
+                        return Container();
+                      }
+                    },
+                  )
+                ],
               ),
-              const SizedBox(height: 20),
-              DateRangeSelection(dateRangeNode: dateRangeNode),
-              const SizedBox(height: 20),
-              BlocBuilder<RecordBloc, RecordState>(
-                builder: (context, state) {
-                  switch (state) {
-                    case RecordLoading():
-                      return const CircularProgressIndicator();
-                    case RecordListLoaded():
-                      return Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Transactions",
-                                style: Theme.of(context).textTheme.titleLarge,
-                              )
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      );
-                    default:
-                      return Container();
-                  }
-                },
-              ),
-              BlocBuilder<RecordBloc, RecordState>(
-                builder: (context, state) {
-                  switch (state) {
-                    case RecordLoading():
-                      return const CircularProgressIndicator();
-                    case RecordListLoaded():
-                      return Column(
-                        children: state.records
-                            .map(
-                              (record) => RecordTile(
-                                record: record,
-                              ),
-                            )
-                            .toList(),
-                      );
+            ),
+            const SizedBox(height: 20),
+            DateRangeSelection(dateRangeNode: dateRangeNode),
+            const SizedBox(height: 20),
+            BlocBuilder<RecordBloc, RecordState>(
+              builder: (context, state) {
+                switch (state) {
+                  case RecordLoading():
+                    return const CircularProgressIndicator();
+                  case RecordListLoaded():
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        "Transactions",
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  default:
+                    return Container();
+                }
+              },
+            ),
+            BlocBuilder<RecordBloc, RecordState>(
+              builder: (context, state) {
+                switch (state) {
+                  case RecordLoading():
+                    return const CircularProgressIndicator();
+                  case RecordListLoaded():
+                    return Column(
+                      children: state.records
+                          .map(
+                            (record) => RecordTile(
+                              record: record,
+                            ),
+                          )
+                          .toList(),
+                    );
 
-                    default:
-                      return Container();
-                  }
-                },
-              )
-            ],
-          ),
+                  default:
+                    return Container();
+                }
+              },
+            )
+          ],
         ),
       ),
+            ),
       floatingActionButton: BlocBuilder<AccountBloc, AccountState>(
         builder: (context, state) {
           return (state is AccountLoaded)
               ? (state.allAccounts.isNotEmpty)
-                  ? FloatingActionButton(
+                  ? FloatingActionButton.extended(
                       onPressed: () {
                         pushPopIn(
                           context,
@@ -161,7 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                       backgroundColor: CustomColor.primary.shade900,
-                      child: const Icon(Icons.add),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Transaction'),
                     )
                   : Container()
               : Container();
@@ -179,14 +174,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? const EdgeInsets.only(right: 20, left: 20)
                   : const EdgeInsets.only(right: 20)
               : null,
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F6E32),
+            color: CustomColor.primary.shade700,
             borderRadius: BorderRadius.circular(10),
           ),
-          height: 50,
-          child: const Center(
-            child: Icon(Icons.add),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.add, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Add Account',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
           ),
         );
       }),
